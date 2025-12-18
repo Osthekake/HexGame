@@ -11,17 +11,53 @@
     gap: 2em;
 }
 
-.timer-bar {
-    width: 2em;
-    background-color: var(--timer-color);
+#time {
+    display: flex;
+    flex-direction: column-reverse;
+    
+    .timer-bar {
+        width: 2em;
+        background-color: var(--timer-color);
+        
+    }
+}
+
+.instruction-text, .score-text, .button {
+    font-family: var(--text-font-family);
+    font-weight: var(--text-font-weight-normal);
+}
+
+.instruction-text {
+    font-size: var(--text-size-lg);
+}
+
+.score-text {
+    font-size: var(--text-size-sm);
 }
 
 .button {
+    font-size: var(--text-size-md);
 
-    margin: 0.5em;
-    border-color: var(--button-border-color);
+    padding: 1em;
     border-style: solid;
-    border-width: 1px;
+    border-color: var(--button-border-color);
+    border-width: 2px;
     border-radius: 0.5em;
-    background-color: var(--button-border-color);
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+
+    &:hover {
+        background-color: var(--button-background-hover-color);
+        cursor: pointer;
+    }
+}
+
+body {
+    background-color: var(--body-background-color);
+}
+
+.content {
+    background-color: var(--content-background-color);
+    padding: 2em;
+    border-radius: 1em;
 }

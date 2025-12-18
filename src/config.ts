@@ -1,8 +1,8 @@
 import type { HexRenderer } from './renderer';
-import { Canvas2DRenderer } from './renderer';
 import type { InputHandler } from './input';
 import { KeyboardInput, TouchInput, GamepadInput } from './input';
 import './colors.css';
+import { Canvas2DRenderer } from './canvas-2d-renderer';
 
 export type RendererType = 'canvas2d';
 export type InputType = 'keyboard' | 'touch' | 'gamepad';
@@ -23,11 +23,16 @@ export interface GameConfig {
     readonly width: number;
     readonly height: number;
   };
+  readonly canvas: {
+    readonly width: number;
+    readonly height: number;
+  }
   readonly timer: {
     readonly maxTime: number;
     readonly increment: number;
   };
   readonly highscoreEnabled: boolean;
+  readonly cursorColor: string;
   readonly colors: string[];
 }
 
@@ -38,11 +43,16 @@ export const config: GameConfig = {
     width: 7,
     height: 7
   },
+  canvas: {
+    width: 500,
+    height: 500
+  },
   timer: {
     maxTime: 30000,
     increment: 1000
   },
   colors: loadColors(10),
+  cursorColor: style.getPropertyValue('--cursor-color'),
   highscoreEnabled: false
 };
 
@@ -53,7 +63,7 @@ export function createRenderer(
 ): HexRenderer {
   switch (type) {
     case 'canvas2d':
-      return new Canvas2DRenderer(canvas, config.grid.width, config.grid.height, config.colors);
+      return new Canvas2DRenderer(canvas, config);
     default:
       throw new Error(`Unknown renderer type: ${type}`);
   }
