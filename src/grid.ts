@@ -1,5 +1,5 @@
 import { unique } from './utils';
-import { Animation } from './animation';
+import { Animation } from './canvas/canvas-animation';
 import type { GameTimer } from './timer';
 import type { HighScore } from './highscore';
 import type { HexRenderer } from './renderer';
@@ -11,8 +11,18 @@ export interface Coordinate {
   y: number;
 }
 
+let lastId = 0
+function nextId(){
+  return ++lastId
+}
+
+export interface Hex {
+  id: number;
+  colorIndex: number;
+}
+
 export class Grid implements Controllable {
-  hexes: number[][] = [];
+  hexes: (Hex | undefined)[][] = [];
   points: number = 0;
   chain: number[] = [];
   combo: number = 0;
@@ -51,6 +61,17 @@ export class Grid implements Controllable {
     this.highScore.enter(this.points);
   }
 
+  private randomColorIndex(){
+    return Math.floor(Math.random() * this.numberOfColors)
+  }
+
+  private generateHex() {
+    return {
+      id: nextId(),
+      colorIndex: this.randomColorIndex()
+    }
+  }
+
   lock(): boolean {
     return this.locks > 0;
   }
@@ -62,48 +83,44 @@ export class Grid implements Controllable {
       this.hexes.push([]);
       this.shouldDraw.push([]);
       for (let x = this.hexes_wide - 1; x >= 0; x--) {
-        this.hexes[y].push(Math.floor(Math.random() * this.numberOfColors));
+        this.hexes[y].push(this.generateHex());
         this.shouldDraw[y].push(true);
       }
     }
     this.points = 0;
     this.pointsHTML.innerHTML = "0";
-    this.render();
+    this.update();
     this.locks = 0;
   }
 
-  hexAt(x: number, y: number): number {
+  hexAt(x: number, y: number): Hex | undefined {
     if (x < 0 || x > this.hexes_wide - 1 || y < 0 || y > this.hexes_high - 1)
-      return -1;
+      return undefined;
     if (!this.hexes[y])
       console.log("hexes[" + y + "]: " + this.hexes[y]);
     return this.hexes[y][x];
   }
 
-  setHex(x: number, y: number, what: number): void {
+  setHex(x: number, y: number, what: Hex | undefined): void {
     this.hexes[y][x] = what;
   }
 
-  colorOf(x: number, y: number): string {
-    return this.renderer.getColorForHex(this.hexes[y][x]);
-  }
-
-  render(): void {
+  update(): void {
     this.renderer.clear();
 
     for (let y = this.hexes_high - 1; y >= 0; y--) {
       for (let x = this.hexes_wide - 1; x >= 0; x--) {
         if (!this.shouldDraw[y][x])
           continue;
-        if (this.hexAt(x, y) < 0)
+        const hex = this.hexAt(x, y);
+        if (hex === undefined)
           continue;
-        const color = this.colorOf(x, y);
-        this.renderer.drawHex(x, y, color);
+        this.renderer.setHexPosition(x, y, hex);
       }
     }
 
     if (!this.lock()) {
-      this.renderer.drawCursor(this.cursor.x, this.cursor.y);
+      this.renderer.setCursorPosition(this.cursor.x, this.cursor.y);
     }
   }
 
@@ -113,7 +130,7 @@ export class Grid implements Controllable {
     this.cursor.x -= 1;
     if (this.cursor.x < 1)
       this.cursor.x = 1;
-    this.render();
+    this.update();
   }
 
   moveUp(): void {
@@ -122,7 +139,7 @@ export class Grid implements Controllable {
     this.cursor.y -= 1;
     if (this.cursor.y < 1)
       this.cursor.y = 1;
-    this.render();
+    this.update();
   }
 
   moveRight(): void {
@@ -131,7 +148,7 @@ export class Grid implements Controllable {
     this.cursor.x += 1;
     if (this.cursor.x > this.hexes_wide - 2)
       this.cursor.x = this.hexes_wide - 2;
-    this.render();
+    this.update();
   }
 
   moveDown(): void {
@@ -140,7 +157,7 @@ export class Grid implements Controllable {
     this.cursor.y += 1;
     if (this.cursor.y > this.hexes_high - 2)
       this.cursor.y = this.hexes_high - 2;
-    this.render();
+    this.update();
   }
 
   async rotateCounterClockwise(): Promise<void> {
@@ -156,13 +173,13 @@ export class Grid implements Controllable {
     const topright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1);
     const bottomleft = this.hexAt(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1);
     const bottomright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1);
-    this.setHex(this.cursor.x + 1, this.cursor.y, bottomright);
-    this.setHex(this.cursor.x - 1, this.cursor.y, topleft);
-    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, topright);
-    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1, right);
-    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1, left);
-    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, bottomleft);
-    this.render();
+    this.setHex(this.cursor.x + 1, this.cursor.y, bottomright!);
+    this.setHex(this.cursor.x - 1, this.cursor.y, topleft!);
+    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, topright!);
+    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1, right!);
+    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1, left!);
+    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, bottomleft!);
+    this.update();
     await this.checkForThreeInARow();
   }
 
@@ -179,13 +196,13 @@ export class Grid implements Controllable {
     const topright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1);
     const bottomleft = this.hexAt(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1);
     const bottomright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1);
-    this.setHex(this.cursor.x + 1, this.cursor.y, topright);
-    this.setHex(this.cursor.x - 1, this.cursor.y, bottomleft);
-    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, left);
-    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1, topleft);
-    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1, bottomright);
-    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, right);
-    this.render();
+    this.setHex(this.cursor.x + 1, this.cursor.y, topright!);
+    this.setHex(this.cursor.x - 1, this.cursor.y, bottomleft!);
+    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, left!);
+    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1, topleft!);
+    this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1, bottomright!);
+    this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, right!);
+    this.update();
     await this.checkForThreeInARow();
   }
 
@@ -195,13 +212,13 @@ export class Grid implements Controllable {
 
     for (let y = this.hexes.length - 1; y >= 0; y--) {
       for (let x = this.hexes_wide - 1; x >= 0; x--) {
-        const current = this.hexAt(x, y);
-        const right = this.hexAt(x + 1, y);
-        const left = this.hexAt(x - 1, y);
-        const topleft = this.hexAt(x - y % 2, y - 1);
-        const topright = this.hexAt(x - y % 2 + 1, y - 1);
-        const bottomleft = this.hexAt(x - y % 2, y + 1);
-        const bottomright = this.hexAt(x - y % 2 + 1, y + 1);
+        const current = this.hexAt(x, y)?.colorIndex;
+        const right = this.hexAt(x + 1, y)?.colorIndex;
+        const left = this.hexAt(x - 1, y)?.colorIndex;
+        const topleft = this.hexAt(x - y % 2, y - 1)?.colorIndex;
+        const topright = this.hexAt(x - y % 2 + 1, y - 1)?.colorIndex;
+        const bottomleft = this.hexAt(x - y % 2, y + 1)?.colorIndex;
+        const bottomright = this.hexAt(x - y % 2 + 1, y + 1)?.colorIndex;
 
         if (current === left && current === right) {
           this.combo += 1;
@@ -232,7 +249,7 @@ export class Grid implements Controllable {
     if (uniq.length > 0) {
       await this.animation.vanish(uniq);
       this.removeAll(uniq);
-      this.render();
+      this.update();
     } else {
       let calculatedPoints = 0;
       for (let i = this.chain.length - 1; i >= 0; i--) {
@@ -253,8 +270,8 @@ export class Grid implements Controllable {
   removeAll(dead: Coordinate[]): void {
     for (let i = dead.length - 1; i >= 0; i--) {
       const coords = dead[i];
-      this.setHex(coords.x, coords.y, -1);
-      const newhex = Math.floor(Math.random() * this.numberOfColors);
+      this.setHex(coords.x, coords.y, undefined);
+      const newhex = this.generateHex();
       this.hexes[coords.y].push(newhex);
     }
     this.shiftAll();
@@ -268,7 +285,7 @@ export class Grid implements Controllable {
       let foundEmpty = false;
       let empties = 0;
       for (let x = 0; x < row.length; x++) {
-        if (row[x] === -1) {
+        if (row[x] === undefined) {
           foundEmpty = true;
           empties += 1;
           shifted.push({ x, y, distance: empties });
@@ -284,7 +301,7 @@ export class Grid implements Controllable {
       for (let y = 0; y < this.hexes_high; y++) {
         const row = this.hexes[y];
         for (let x = 0; x < row.length; x++) {
-          if (row[x] < 0) {
+          if (row[x] === undefined) {
             row.splice(x, 1);
             x -= 1;
           }
@@ -295,7 +312,7 @@ export class Grid implements Controllable {
     } else {
       await this.checkForThreeInARow();
       this.locks -= 1;
-      this.render();
     }
+    this.update();
   }
 }

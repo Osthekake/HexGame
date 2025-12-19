@@ -2,7 +2,7 @@ import type { HexRenderer } from './renderer';
 import type { InputHandler } from './input';
 import { KeyboardInput, TouchInput, GamepadInput } from './input';
 import './colors.css';
-import { Canvas2DRenderer } from './canvas-2d-renderer';
+import { Canvas2DRenderer } from './canvas/canvas-2d-renderer';
 
 export type RendererType = 'canvas2d';
 export type InputType = 'keyboard' | 'touch' | 'gamepad';

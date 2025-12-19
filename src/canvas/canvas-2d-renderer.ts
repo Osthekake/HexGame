@@ -1,5 +1,6 @@
-import { GameConfig } from "./config";
-import { HexRenderer, HexTransform } from "./renderer";
+import { GameConfig } from "../config";
+import { Hex } from "../grid";
+import { HexRenderer, HexTransform } from "../renderer";
 
 export class Canvas2DRenderer implements HexRenderer {
   private canvas: HTMLCanvasElement;
@@ -33,7 +34,7 @@ export class Canvas2DRenderer implements HexRenderer {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  drawCursor(gridX: number, gridY: number): void {
+  setCursorPosition(gridX: number, gridY: number): void {
     const pixel = this.gridToPixel(gridX, gridY);
     const radius = this.getHexRadius();
 
@@ -54,7 +55,9 @@ export class Canvas2DRenderer implements HexRenderer {
     this.ctx.restore();
   }
 
-  drawHex(gridX: number, gridY: number, color: string, transform?: HexTransform): void {
+  setHexPosition(gridX: number, gridY: number, hex: Hex, transform?: HexTransform): void {
+    const color = this.getColorForHex(hex.colorIndex)
+    console.log('draw hex', hex)
     if (!transform || transform.type === 'normal') {
       const pixel = this.gridToPixel(gridX, gridY);
       this.drawHexAtPixel(pixel.x, pixel.y, 1, color);

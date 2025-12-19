@@ -1,3 +1,4 @@
+import { Hex } from "./grid";
 
 export interface HexTransform {
   type: 'normal' | 'rotate' | 'shift' | 'vanish';
@@ -15,8 +16,8 @@ export interface HexTransform {
 export interface HexRenderer {
   // Basic rendering
   clear(): void;
-  drawHex(gridX: number, gridY: number, color: string, transform?: HexTransform): void;
-  drawCursor(gridX: number, gridY: number): void;
+  setHexPosition(gridX: number, gridY: number, hex: Hex, transform?: HexTransform): void;
+  setCursorPosition(gridX: number, gridY: number): void;
   drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void;
 
   // Color lookup helper (moved from Grid)
