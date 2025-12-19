@@ -122,6 +122,7 @@ export class Grid implements Controllable {
     if (!this.lock()) {
       this.renderer.setCursorPosition(this.cursor.x, this.cursor.y);
     }
+    this.renderer.render()
   }
 
   moveLeft(): void {

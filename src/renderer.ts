@@ -16,6 +16,7 @@ export interface HexTransform {
 export interface HexRenderer {
   // Basic rendering
   clear(): void;
+  render(): void;
   setHexPosition(gridX: number, gridY: number, hex: Hex, transform?: HexTransform): void;
   setCursorPosition(gridX: number, gridY: number): void;
   drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void;

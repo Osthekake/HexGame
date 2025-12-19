@@ -3,8 +3,9 @@ import type { InputHandler } from './input';
 import { KeyboardInput, TouchInput, GamepadInput } from './input';
 import './colors.css';
 import { Canvas2DRenderer } from './canvas/canvas-2d-renderer';
+import { ThreeJsRenderer } from './threejs/threejs-renderer';
 
-export type RendererType = 'canvas2d';
+export type RendererType = 'canvas2d' | 'threejs';
 export type InputType = 'keyboard' | 'touch' | 'gamepad';
 
 // Load colors dynamically from CSS custom properties
@@ -33,11 +34,12 @@ export interface GameConfig {
   };
   readonly highscoreEnabled: boolean;
   readonly cursorColor: string;
+  readonly backgroundColor: string;
   readonly colors: string[];
 }
 
 export const config: GameConfig = {
-  renderer: 'canvas2d',
+  renderer: 'threejs',
   input: 'keyboard',
   grid: {
     width: 7,
@@ -53,6 +55,7 @@ export const config: GameConfig = {
   },
   colors: loadColors(10),
   cursorColor: style.getPropertyValue('--cursor-color'),
+  backgroundColor: style.getPropertyValue('--content-background-color'),
   highscoreEnabled: false
 };
 
@@ -64,6 +67,8 @@ export function createRenderer(
   switch (type) {
     case 'canvas2d':
       return new Canvas2DRenderer(canvas, config);
+    case 'threejs':
+      return new ThreeJsRenderer(canvas, config)
     default:
       throw new Error(`Unknown renderer type: ${type}`);
   }

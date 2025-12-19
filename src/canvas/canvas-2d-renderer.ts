@@ -163,4 +163,8 @@ export class Canvas2DRenderer implements HexRenderer {
   private getHexRadius(): number {
     return this.canvas.width / this.hexesWide / 2;
   }
+
+  public render() {
+    
+  }
 }
