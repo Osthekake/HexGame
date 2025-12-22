@@ -37,6 +37,10 @@ export class Grid implements Controllable {
   private renderer: HexRenderer;
   private numberOfColors: number;
 
+  // Callbacks for game state changes
+  onGameStart?: () => void;
+  onGameOver?: () => void;
+
   constructor(
     renderer: HexRenderer,
     pointsHTML: HTMLElement,
@@ -56,6 +60,9 @@ export class Grid implements Controllable {
   private gameOver(): void {
     this.locks += 1;
     this.highScore.enter(this.points);
+    if (this.onGameOver) {
+      this.onGameOver();
+    }
   }
 
   private randomColorIndex(){
@@ -163,7 +170,11 @@ export class Grid implements Controllable {
       return;
     this.locks += 1;
 
+    const wasNotRunning = !this.timer.isRunning();
     this.timer.startIfNotRunning(() => this.gameOver());
+    if (wasNotRunning && this.timer.isRunning() && this.onGameStart) {
+      this.onGameStart();
+    }
 
     const right = this.hexAt(this.cursor.x + 1, this.cursor.y);
     const left = this.hexAt(this.cursor.x - 1, this.cursor.y);
@@ -190,7 +201,11 @@ export class Grid implements Controllable {
       return;
     this.locks += 1;
 
+    const wasNotRunning = !this.timer.isRunning();
     this.timer.startIfNotRunning(() => this.gameOver());
+    if (wasNotRunning && this.timer.isRunning() && this.onGameStart) {
+      this.onGameStart();
+    }
 
     const right = this.hexAt(this.cursor.x + 1, this.cursor.y);
     const left = this.hexAt(this.cursor.x - 1, this.cursor.y);

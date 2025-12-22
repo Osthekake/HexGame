@@ -43,7 +43,7 @@ export class ThreeJsRenderer implements HexRenderer {
         this.timer = timer
         this.scene = new Scene()
         this.scene.background = new Color(config.backgroundColor)
-        this.camera = new PerspectiveCamera(75, config.canvas.width / config.canvas.height, 0.1, 100)
+        this.camera = new PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 100)
 
         // Add ambient light for general illumination
         const ambientLight = new AmbientLight(0xffffff, 1.5)
@@ -55,7 +55,7 @@ export class ThreeJsRenderer implements HexRenderer {
         this.tileWidth = 2.3
         this.tileHeight = 2.3*0.85
         this.renderer = new WebGLRenderer({canvas})
-        this.renderer.setSize(config.canvas.width, config.canvas.height)
+        this.renderer.setSize(canvas.width, canvas.height)
 
         this.materials = {}
         config.colors.forEach((color, i) => this.addMaterial(i, color))

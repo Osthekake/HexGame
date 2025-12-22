@@ -20,6 +20,21 @@ if (!timeElement) {
   throw new Error("Time element not found");
 }
 
+const overlayContainer = document.querySelector(".overlay-container") as HTMLElement;
+if (!overlayContainer) {
+  throw new Error("Overlay container not found");
+}
+
+const instructionText = document.querySelector(".instruction-text") as HTMLElement;
+if (!instructionText) {
+  throw new Error("Instruction text not found");
+}
+
+const restartButton = document.getElementById("restart-button") as HTMLElement;
+if (!restartButton) {
+  throw new Error("Restart button not found");
+}
+
 
 
 // Create instances
@@ -29,6 +44,11 @@ bar.render(100);
 const timer = new Timer(bar, config.timer.maxTime, config.timer.increment);
 const highScore = new HighScore(config.highscoreEnabled);
 
+// Set initial canvas size to be square and fill available space
+const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+canvas.width = size;
+canvas.height = size;
+
 // Create renderer based on config
 const renderer = createRenderer(
   config.renderer,
@@ -36,6 +56,14 @@ const renderer = createRenderer(
   config,
   timer
 );
+
+// Resize canvas on window resize
+window.addEventListener('resize', () => {
+  const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+  canvas.width = size;
+  canvas.height = size;
+  renderer.render();
+});
 
 // Create Grid (Animation is created internally)
 const grid = new Grid(
@@ -50,16 +78,42 @@ const grid = new Grid(
 const inputHandler = createInputHandler(config.input);
 inputHandler.attach(grid);
 
+// Overlay visibility control
+function showGameOverUI(): void {
+  instructionText.style.display = 'none';
+  restartButton.style.display = 'block';
+}
+
+function showStartUI(): void {
+  instructionText.style.display = 'block';
+  restartButton.style.display = 'none';
+}
+
+function hideOverlay(): void {
+  instructionText.style.display = 'none';
+  restartButton.style.display = 'none';
+}
+
+// Set up game state callbacks
+grid.onGameStart = () => {
+  hideOverlay();
+};
+
+grid.onGameOver = () => {
+  showGameOverUI();
+};
+
 // Initialize the game
 grid.init();
 
+// Show start UI initially (before first rotation)
+showStartUI();
+
 // Set up event listeners
-const restartButton = document.getElementById("restart-button");
-if (restartButton) {
-  restartButton.addEventListener('click', () => {
-    grid.init();
-  });
-}
+restartButton.addEventListener('click', () => {
+  grid.init();
+  showStartUI();
+});
 
 const clearHighscoreButton = document.getElementById("clear-highscore");
 if (clearHighscoreButton) {

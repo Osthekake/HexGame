@@ -25,10 +25,6 @@ export interface GameConfig {
     readonly width: number;
     readonly height: number;
   };
-  readonly canvas: {
-    readonly width: number;
-    readonly height: number;
-  }
   readonly timer: {
     readonly maxTime: number;
     readonly increment: number;
@@ -51,10 +47,6 @@ export const config: GameConfig = {
   grid: {
     width: 7,
     height: 7
-  },
-  canvas: {
-    width: 500,
-    height: 500
   },
   timer: {
     maxTime: 30000,

@@ -16,8 +16,8 @@ export class Canvas2DRenderer implements HexRenderer {
 
   constructor(canvas: HTMLCanvasElement, private config: GameConfig, private timer: GameTimer) {
     this.canvas = canvas;
-    canvas.width = config.canvas.width
-    canvas.height = config.canvas.height
+    canvas.width = 500
+    canvas.height = 500
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not get 2d context");
     this.ctx = ctx;

@@ -6,19 +6,22 @@
   <title>Hex Game</title>
 </head>
 <body>
-  <div class="vertical-flex">
-    <h3 class="instruction-text">Use arrows to move. a, d to rotate. Rotate to begin timer.</h3>
-    <span class="score-text">Score: <span class="score-points" id="points"></span></span>
-    <div class="horizontal-flex content">
-      <canvas id="myCanvas" >
-        Your browser does not support the canvas element.
-      </canvas>
-      <div id="time" ></div>
-    </div>
-    
-    <button class="button" id="restart-button">Restart</button>
-    
+  <div class="horizontal-flex content">
+    <canvas id="myCanvas" >
+      Your browser does not support the canvas element.
+    </canvas>
+    <div id="time" ></div>
   </div>
+
+  <div class="score-container">
+    <span class="score-text">Score: <span class="score-points" id="points"></span></span>
+  </div>
+
+  <div class="overlay-container">
+    <h3 class="instruction-text">Use arrows to move. a, d to rotate. Rotate to begin timer.</h3>
+    <button class="button" id="restart-button">Restart</button>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ export interface GameTimer {
   hold(howlong: number): void;
   addTime(time: number): void;
   startIfNotRunning(onStop: () => void): void;
+  isRunning(): boolean;
 }
 
 export class Timer implements GameTimer {
