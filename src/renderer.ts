@@ -17,6 +17,6 @@ export interface HexRenderer {
   getColorForHex(hexValue: number): string;
 
   // Gradient creation helper
-  createHorizontalGradient(colorStops: Array<{ offset: number; color: string }>): CanvasGradient;
+  //createHorizontalGradient(colorStops: Array<{ offset: number; color: string }>): CanvasGradient;
 }
 

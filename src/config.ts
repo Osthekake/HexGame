@@ -46,7 +46,7 @@ export interface GameConfig {
 }
 
 export const config: GameConfig = {
-  renderer: 'canvas2d',
+  renderer: 'threejs',
   input: 'keyboard',
   grid: {
     width: 7,
@@ -82,7 +82,7 @@ export function createRenderer(
     case 'canvas2d':
       return new Canvas2DRenderer(canvas, config, timer);
     case 'threejs':
-      return new ThreeJsRenderer(canvas, config)
+      return new ThreeJsRenderer(canvas, config, timer)
     default:
       throw new Error(`Unknown renderer type: ${type}`);
   }
