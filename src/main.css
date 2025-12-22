@@ -1,0 +1,121 @@
+.vertical-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    align-items: center;
+}
+
+.horizontal-flex {
+    display: flex;
+    flex-direction: row;
+    gap: 2em;
+}
+
+
+.instruction-text, .score-text, .button {
+    font-family: var(--text-font-family);
+    font-weight: var(--text-font-weight-normal);
+}
+
+.instruction-text {
+    font-size: var(--text-size-lg);
+    color: var(--text-color);
+}
+
+.score-text {
+    font-size: var(--text-size-lg);
+    color: var(--text-color);
+}
+
+.button {
+    font-size: var(--text-size-md);
+
+    padding: 1em;
+    border-style: solid;
+    border-color: var(--button-border-color);
+    border-width: 2px;
+    border-radius: 0.5em;
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+
+    &:hover {
+        background-color: var(--button-background-hover-color);
+        cursor: pointer;
+    }
+}
+
+body {
+    background-color: var(--body-background-color);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.content {
+    background-color: var(--content-background-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+}
+
+#myCanvas {
+    aspect-ratio: 1 / 1;
+    max-width: calc(100vh - 4em);
+    max-height: calc(100vh - 4em);
+    width: auto;
+    height: auto;
+}
+
+#time {
+    display: flex;
+    flex-direction: column-reverse;
+    height: calc(100vh - 4em);
+
+    .timer-bar {
+        width: 2em;
+        background-color: var(--timer-color);
+    }
+}
+
+
+
+.score-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    padding-top: 2em;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.score-container > * {
+    pointer-events: auto;
+}
+
+.overlay-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2em;
+    padding-bottom: 2em;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.overlay-container > * {
+    pointer-events: auto;
+}

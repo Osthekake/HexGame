@@ -1,0 +1,32 @@
+:root {
+    --tile-color-0: #c84c49;
+    --tile-color-1: #d88741;
+    --tile-color-2: #947a3b;
+    --tile-color-3: #afb240;
+    --tile-color-4: #558749;
+    --tile-color-5: #5eba59;
+    --tile-color-6: #49bab2;
+    --tile-color-7: #6684cc;
+    --tile-color-8: #a361c7;
+    --tile-color-9: #c76090;
+
+    --timer-color: rgb(80, 186, 34);
+    --cursor-color: rgb(230, 230, 230);
+
+    --body-background-color: rgb(216, 216, 216);
+    --content-background-color: rgb(14, 14, 14);
+
+    --button-border-color: rgb(53, 53, 53);
+    --button-background-color: #c84c49;
+    --button-background-hover-color: #e26d6b;
+    --button-text-color: rgb(235, 235, 255);
+    --button-text-shadow-color: rgb(11, 11, 48);
+
+    --text-font-family: Arial;
+    --text-color: rgb(194, 194, 194);
+    --text-size-sm: 12px;
+    --text-size-md: 16px;
+    --text-size-lg: 24px;
+    --text-font-weight-normal: 400;
+    --text-font-weight-bold: 600;
+}

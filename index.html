@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hex Game</title>
+</head>
+<body>
+  <div class="horizontal-flex content">
+    <canvas id="myCanvas" >
+      Your browser does not support the canvas element.
+    </canvas>
+    <div id="time" ></div>
+  </div>
+
+  <div class="score-container">
+    <span class="score-text">Score: <span class="score-points" id="points"></span></span>
+  </div>
+
+  <div class="overlay-container">
+    <h3 class="instruction-text">Use arrows to move. a, d to rotate. Rotate to begin timer.</h3>
+    <button class="button" id="restart-button">Restart</button>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
