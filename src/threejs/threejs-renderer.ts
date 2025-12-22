@@ -11,6 +11,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
 import type { Font } from 'three/examples/jsm/loaders/FontLoader.js'
 import * as TWEEN from '@tweenjs/tween.js'
+import { Group } from '@tweenjs/tween.js'
 import { tweenPromise } from './tween-promise'
 import { HexBevelMaterial } from './hex-bevel-material'
 
@@ -35,6 +36,7 @@ export class ThreeJsRenderer implements HexRenderer {
     private font: Font | null = null
     private textMeshes: Mesh[] = []
     private animatingHexes: Set<number> = new Set()
+    private cursorTweenGroup: Group = new Group()
 
     constructor(canvas: HTMLCanvasElement, config: GameConfig, timer: GameTimer){
         this.config = config
@@ -48,7 +50,7 @@ export class ThreeJsRenderer implements HexRenderer {
         this.scene.add(ambientLight)
 
         // Cursor point light
-        this.cursorLight = new PointLight(0xffffff, 5, 10)
+        this.cursorLight = new PointLight(0xffffff, 5, 20)
 
         this.tileWidth = 2.3
         this.tileHeight = 2.3*0.85
@@ -301,20 +303,39 @@ export class ThreeJsRenderer implements HexRenderer {
 
     setCursorPosition(gridX: number, gridY: number): void {
         const pos = this.gridToPosition(gridX, gridY)
+        const targetTorusPos = { x: pos.x, y: pos.y, z: -10.5 }
+        const targetLightPos = { x: pos.x, y: pos.y, z: -9 }
 
-        // Update cursor torus position
-        this.cursorTorus.position.set(
-            pos.x,
-            pos.y,
-            -10.5
-        )
+        // Remove all existing cursor animations
+        this.cursorTweenGroup.removeAll()
 
-        // Update cursor light position (slightly above the torus)
-        this.cursorLight.position.set(
-            pos.x,
-            pos.y,
-            -9
-        )
+        // Animation duration in milliseconds (reasonably quick)
+        const duration = 150
+
+        // Create tweens for both torus and light positions
+        const torusTween = new TWEEN.Tween(this.cursorTorus.position, this.cursorTweenGroup)
+            .to(targetTorusPos, duration)
+            .easing(TWEEN.Easing.Quadratic.Out)
+
+        const lightTween = new TWEEN.Tween(this.cursorLight.position, this.cursorTweenGroup)
+            .to(targetLightPos, duration)
+            .easing(TWEEN.Easing.Quadratic.Out)
+
+        // Start both tweens
+        torusTween.start()
+        lightTween.start()
+
+        // Drive the animation with requestAnimationFrame
+        const start = Date.now()
+        const tick = () => {
+            this.cursorTweenGroup.update()
+            this.render()
+            const elapsed = Date.now() - start
+            if (elapsed < duration) {
+                requestAnimationFrame(tick)
+            }
+        }
+        requestAnimationFrame(tick)
     }
 
     drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void {

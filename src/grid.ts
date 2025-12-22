@@ -28,7 +28,7 @@ export class Grid implements Controllable {
   shouldDraw: boolean[][] = [];
   hexes_wide: number;
   hexes_high: number;
-  cursor: Coordinate = { x: 1, y: 1 };
+  cursor: Coordinate = { x: 3, y: 3 };
   locks: number = 0;
   pointsHTML: HTMLElement;
 
