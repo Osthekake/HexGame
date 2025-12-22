@@ -89,7 +89,7 @@ export class Bar implements ProgressBar {
   }
 
   render(percentage: number): void {
-    console.log("Rendering timer at " + percentage + "%");
+    //console.log("Rendering timer at " + percentage + "%");
     const html = "<div class='timer-bar' style='height: " + percentage + "%;'>" +
       "</div>";
     this.element.innerHTML = html;

@@ -33,7 +33,8 @@ const highScore = new HighScore(config.highscoreEnabled);
 const renderer = createRenderer(
   config.renderer,
   canvas,
-  config
+  config,
+  timer
 );
 
 // Create Grid (Animation is created internally)

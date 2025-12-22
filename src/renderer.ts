@@ -1,25 +1,17 @@
-import { Hex } from "./grid";
-
-export interface HexTransform {
-  type: 'normal' | 'rotate' | 'shift' | 'vanish';
-  // For rotate
-  centerGridX?: number;
-  centerGridY?: number;
-  progress?: number;
-  clockwise?: boolean;
-  rotationIndex?: number; // Which position in the 6-hex rotation (0-5)
-  // For shift
-  distance?: number;
-  // For vanish (uses progress)
-}
+import { Coordinate, Hex } from "./grid";
 
 export interface HexRenderer {
+  reset(): void
   // Basic rendering
-  clear(): void;
   render(): void;
-  setHexPosition(gridX: number, gridY: number, hex: Hex, transform?: HexTransform): void;
+  setHexPosition(gridX: number, gridY: number, hex: Hex): void;
   setCursorPosition(gridX: number, gridY: number): void;
   drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void;
+  //animations
+  animateVanish(uniq: (Hex | undefined)[]): Promise<void>;
+  animateShowText(calculatedPoints: number, text: string): Promise<void>;
+  animateRotate(clockwise: boolean, cursor: Coordinate, hexes: (Hex | undefined)[]): Promise<void>;
+  animateShiftLeft(shiftedUniq: (Coordinate & { distance: number; })[]): Promise<void>;
 
   // Color lookup helper (moved from Grid)
   getColorForHex(hexValue: number): string;

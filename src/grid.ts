@@ -1,5 +1,4 @@
 import { unique } from './utils';
-import { Animation } from './canvas/canvas-animation';
 import type { GameTimer } from './timer';
 import type { HighScore } from './highscore';
 import type { HexRenderer } from './renderer';
@@ -33,7 +32,6 @@ export class Grid implements Controllable {
   locks: number = 0;
   pointsHTML: HTMLElement;
 
-  private animation: Animation;
   private timer: GameTimer;
   private highScore: HighScore;
   private renderer: HexRenderer;
@@ -52,7 +50,6 @@ export class Grid implements Controllable {
     this.highScore = highScore;
     this.hexes_wide = config.grid.width;
     this.hexes_high = config.grid.height;
-    this.animation = new Animation(this, timer, renderer);
     this.numberOfColors = config.colors.length
   }
 
@@ -77,6 +74,7 @@ export class Grid implements Controllable {
   }
 
   init(): void {
+    this.renderer.reset()
     this.hexes = [];
     this.shouldDraw = [];
     for (let y = 0; y < this.hexes_high; y++) {
@@ -106,7 +104,6 @@ export class Grid implements Controllable {
   }
 
   update(): void {
-    this.renderer.clear();
 
     for (let y = this.hexes_high - 1; y >= 0; y--) {
       for (let x = this.hexes_wide - 1; x >= 0; x--) {
@@ -164,9 +161,9 @@ export class Grid implements Controllable {
   async rotateCounterClockwise(): Promise<void> {
     if (this.lock())
       return;
+    this.locks += 1;
 
     this.timer.startIfNotRunning(() => this.gameOver());
-    await this.animation.rotate(false, this.cursor);
 
     const right = this.hexAt(this.cursor.x + 1, this.cursor.y);
     const left = this.hexAt(this.cursor.x - 1, this.cursor.y);
@@ -174,6 +171,9 @@ export class Grid implements Controllable {
     const topright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1);
     const bottomleft = this.hexAt(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1);
     const bottomright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1);
+    
+    await this.renderer.animateRotate(false, this.cursor, [topleft, topright, right, bottomright, bottomleft, left]);
+
     this.setHex(this.cursor.x + 1, this.cursor.y, bottomright!);
     this.setHex(this.cursor.x - 1, this.cursor.y, topleft!);
     this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, topright!);
@@ -182,14 +182,15 @@ export class Grid implements Controllable {
     this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, bottomleft!);
     this.update();
     await this.checkForThreeInARow();
+    this.locks -= 1;
   }
 
   async rotateClockwise(): Promise<void> {
     if (this.lock())
       return;
+    this.locks += 1;
 
     this.timer.startIfNotRunning(() => this.gameOver());
-    await this.animation.rotate(true, this.cursor);
 
     const right = this.hexAt(this.cursor.x + 1, this.cursor.y);
     const left = this.hexAt(this.cursor.x - 1, this.cursor.y);
@@ -197,6 +198,9 @@ export class Grid implements Controllable {
     const topright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y - 1);
     const bottomleft = this.hexAt(this.cursor.x - this.cursor.y % 2, this.cursor.y + 1);
     const bottomright = this.hexAt(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1);
+
+    await this.renderer.animateRotate(true, this.cursor, [topleft, topright, right, bottomright, bottomleft, left]);
+
     this.setHex(this.cursor.x + 1, this.cursor.y, topright!);
     this.setHex(this.cursor.x - 1, this.cursor.y, bottomleft!);
     this.setHex(this.cursor.x - this.cursor.y % 2, this.cursor.y - 1, left!);
@@ -205,6 +209,7 @@ export class Grid implements Controllable {
     this.setHex(this.cursor.x - this.cursor.y % 2 + 1, this.cursor.y + 1, right!);
     this.update();
     await this.checkForThreeInARow();
+    this.locks -= 1;
   }
 
   async checkForThreeInARow(): Promise<void> {
@@ -248,8 +253,8 @@ export class Grid implements Controllable {
 
     const uniq = unique(toBeRemoved);
     if (uniq.length > 0) {
-      await this.animation.vanish(uniq);
-      this.removeAll(uniq);
+      await this.renderer.animateVanish(uniq.map(({x, y}) => this.hexAt(x, y)));
+      await this.removeAll(uniq);
       this.update();
     } else {
       let calculatedPoints = 0;
@@ -258,7 +263,8 @@ export class Grid implements Controllable {
       }
       calculatedPoints *= this.chain.length * this.chain.length;
       if (calculatedPoints >= 6) {
-        await this.animation.showText(calculatedPoints, "chain");
+        this.update();
+        await this.renderer.animateShowText(calculatedPoints, "chain");
         this.timer.addTime(5000);
       }
       this.points += calculatedPoints;
@@ -268,14 +274,23 @@ export class Grid implements Controllable {
     this.locks -= 1;
   }
 
-  removeAll(dead: Coordinate[]): void {
+  async removeAll(dead: Coordinate[]): Promise<void> {
+    const newTiles: Array<{ hex: Hex; coord: Coordinate }> = [];
     for (let i = dead.length - 1; i >= 0; i--) {
       const coords = dead[i];
       this.setHex(coords.x, coords.y, undefined);
       const newhex = this.generateHex();
+      const newX = this.hexes[coords.y].length;
+      newTiles.push({ hex: newhex, coord: { x: newX, y: coords.y } });
       this.hexes[coords.y].push(newhex);
     }
-    this.shiftAll();
+
+    // Register new tiles with renderer before shiftAll
+    for (const { hex, coord } of newTiles) {
+      this.renderer.setHexPosition(coord.x, coord.y, hex);
+    }
+
+    return this.shiftAll();
   }
 
   async shiftAll(): Promise<void> {
@@ -298,7 +313,7 @@ export class Grid implements Controllable {
 
     const shiftedUniq = unique(shifted);
     if (shiftedUniq.length > 0) {
-      await this.animation.shiftLeft(shiftedUniq);
+      await this.renderer.animateShiftLeft(shiftedUniq);
       for (let y = 0; y < this.hexes_high; y++) {
         const row = this.hexes[y];
         for (let x = 0; x < row.length; x++) {
@@ -308,6 +323,17 @@ export class Grid implements Controllable {
           }
         }
       }
+
+      // Update renderer with new positions after shift
+      for (let y = 0; y < this.hexes_high; y++) {
+        for (let x = 0; x < this.hexes_wide; x++) {
+          const hex = this.hexAt(x, y);
+          if (hex) {
+            this.renderer.setHexPosition(x, y, hex);
+          }
+        }
+      }
+
       await this.checkForThreeInARow();
       this.locks -= 1;
     } else {

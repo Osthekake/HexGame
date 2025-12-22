@@ -11,13 +11,3 @@ export function unique<T>(arr: T[]): T[] {
   return result;
 }
 
-export const requestAnimFrame = (function() {
-  return window.requestAnimationFrame ||
-    (window as any).webkitRequestAnimationFrame ||
-    (window as any).mozRequestAnimationFrame ||
-    (window as any).oRequestAnimationFrame ||
-    (window as any).msRequestAnimationFrame ||
-    function(callback: (time: number) => void, secondsPerFrame: number) {
-      window.setTimeout(() => callback(performance.now()), secondsPerFrame);
-    };
-})();

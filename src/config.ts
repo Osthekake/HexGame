@@ -4,6 +4,7 @@ import { KeyboardInput, TouchInput, GamepadInput } from './input';
 import './colors.css';
 import { Canvas2DRenderer } from './canvas/canvas-2d-renderer';
 import { ThreeJsRenderer } from './threejs/threejs-renderer';
+import { GameTimer } from './timer';
 
 export type RendererType = 'canvas2d' | 'threejs';
 export type InputType = 'keyboard' | 'touch' | 'gamepad';
@@ -32,6 +33,12 @@ export interface GameConfig {
     readonly maxTime: number;
     readonly increment: number;
   };
+  readonly animation: {
+    shiftAnimationTime: number,
+    rotateAnimationTime: number,
+    vanishAnimationTime: number,
+    textAnimationTime: number
+  }
   readonly highscoreEnabled: boolean;
   readonly cursorColor: string;
   readonly backgroundColor: string;
@@ -39,7 +46,7 @@ export interface GameConfig {
 }
 
 export const config: GameConfig = {
-  renderer: 'threejs',
+  renderer: 'canvas2d',
   input: 'keyboard',
   grid: {
     width: 7,
@@ -53,6 +60,12 @@ export const config: GameConfig = {
     maxTime: 30000,
     increment: 1000
   },
+  animation: {
+    shiftAnimationTime: 400,
+    rotateAnimationTime: 400,
+    vanishAnimationTime: 400,
+    textAnimationTime: 600
+  },
   colors: loadColors(10),
   cursorColor: style.getPropertyValue('--cursor-color'),
   backgroundColor: style.getPropertyValue('--content-background-color'),
@@ -62,11 +75,12 @@ export const config: GameConfig = {
 export function createRenderer(
   type: RendererType,
   canvas: HTMLCanvasElement,
-  config: GameConfig
+  config: GameConfig,
+  timer: GameTimer
 ): HexRenderer {
   switch (type) {
     case 'canvas2d':
-      return new Canvas2DRenderer(canvas, config);
+      return new Canvas2DRenderer(canvas, config, timer);
     case 'threejs':
       return new ThreeJsRenderer(canvas, config)
     default:
@@ -86,3 +100,4 @@ export function createInputHandler(type: InputType): InputHandler {
       throw new Error(`Unknown input type: ${type}`);
   }
 }
+
