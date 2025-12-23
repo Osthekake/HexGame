@@ -4,6 +4,7 @@ export interface HexBevelMaterialOptions {
     color: string
     bevelWidth?: number
     shininess?: number
+    hexRadius?: number
 }
 
 export class HexBevelMaterial extends ShaderMaterial {
@@ -11,6 +12,7 @@ export class HexBevelMaterial extends ShaderMaterial {
         const color = new Color(options.color)
         const bevelWidth = options.bevelWidth ?? 0.15
         const shininess = options.shininess ?? 100
+        const hexRadius = options.hexRadius ?? 1.15
 
         super({
             uniforms: UniformsUtils.merge([
@@ -18,7 +20,8 @@ export class HexBevelMaterial extends ShaderMaterial {
                 {
                     baseColor: { value: color },
                     bevelWidth: { value: bevelWidth },
-                    shininess: { value: shininess }
+                    shininess: { value: shininess },
+                    hexRadius: { value: hexRadius }
                 }
             ]),
             vertexShader: `
@@ -38,6 +41,7 @@ export class HexBevelMaterial extends ShaderMaterial {
                 uniform vec3 baseColor;
                 uniform float bevelWidth;
                 uniform float shininess;
+                uniform float hexRadius;
 
                 varying vec3 vPosition;
                 varying vec3 vNormal;
@@ -63,57 +67,71 @@ export class HexBevelMaterial extends ShaderMaterial {
 
                 void main() {
                     // Define the 6 vertices of a regular hexagon in local space
-                    // The hex is a cylinder with radius ~1.15 (half of tileWidth 2.3)
-                    float hexRadius = 1.15;
                     float angle = 3.14159265359 / 3.0; // 60 degrees
 
                     vec2 hexVerts[6];
                     for (int i = 0; i < 6; i++) {
-                        float a = float(i) * angle;
+                        // Add PI/6 (30 degrees) to match the geometry's orientation
+                        // This makes corners point up/down (y-axis) and flats face left/right (x-axis)
+                        float a = float(i) * angle + 3.14159265359 / 6.0;
                         hexVerts[i] = vec2(cos(a), sin(a)) * hexRadius;
                     }
 
-                    // Current position in XY plane (top face of cylinder)
-                    vec2 pos2D = vPosition.xy;
+                    // Smooth the normal based on distance to edge
+                    // The ExtrudeGeometry provides the actual bevel shape,
+                    // but we smooth the normals further for perfect lighting
+                    vec3 smoothedNormal = vNormal;
 
-                    // Find minimum distance to any edge
-                    float minDist = 1000.0;
-                    vec2 nearestEdgeDir = vec2(0.0);
+                    // Only apply smoothing to top surface and bevels
+                    // Check if this is a top-facing surface (normal pointing up in Z)
+                    // Side walls have normals pointing horizontally (normal.z near 0)
+                    if (abs(vNormal.z) > 0.3) {
+                        // Current position in XY plane (top face)
+                        vec2 pos2D = vPosition.xy;
 
-                    for (int i = 0; i < 6; i++) {
-                        int nextI = (i + 1) % 6;
-                        vec2 edgeStart = hexVerts[i];
-                        vec2 edgeEnd = hexVerts[nextI];
+                        // Find minimum distance to any edge and the perpendicular direction
+                        float minDist = 1000.0;
+                        vec2 nearestEdgeDir = vec2(0.0);
 
-                        float dist = distanceToEdge(pos2D, edgeStart, edgeEnd);
+                        for (int i = 0; i < 6; i++) {
+                            int nextI = (i + 1) % 6;
+                            vec2 edgeStart = hexVerts[i];
+                            vec2 edgeEnd = hexVerts[nextI];
 
-                        if (dist < minDist) {
-                            minDist = dist;
-                            // Calculate perpendicular direction pointing outward from edge
-                            vec2 edgeVec = normalize(edgeEnd - edgeStart);
-                            nearestEdgeDir = vec2(-edgeVec.y, edgeVec.x);
-                            // Make sure it points outward (away from center)
-                            if (dot(nearestEdgeDir, pos2D) < 0.0) {
-                                nearestEdgeDir = -nearestEdgeDir;
+                            float dist = distanceToEdge(pos2D, edgeStart, edgeEnd);
+
+                            if (dist < minDist) {
+                                minDist = dist;
+                                // Calculate perpendicular direction pointing outward from edge
+                                vec2 edgeVec = normalize(edgeEnd - edgeStart);
+                                nearestEdgeDir = vec2(-edgeVec.y, edgeVec.x);
+                                // Make sure it points outward (away from center)
+                                if (dot(nearestEdgeDir, pos2D) < 0.0) {
+                                    nearestEdgeDir = -nearestEdgeDir;
+                                }
                             }
+                        }
+
+                        // Only smooth normals in the bevel region
+                        if (minDist < bevelWidth) {
+                            // Calculate how far into the bevel we are (0 = center, 1 = edge)
+                            float bevelFactor = smoothstep(bevelWidth, 0.0, minDist);
+
+                            // Create a smooth outward-facing normal for the bevel
+                            // Blend between flat (0,0,1) and angled outward
+                            vec3 idealBevelNormal = normalize(vec3(
+                                nearestEdgeDir.x * bevelFactor,
+                                nearestEdgeDir.y * bevelFactor,
+                                1.0
+                            ));
+
+                            // Blend between the geometry's normal and our smoothed normal
+                            // This removes faceting from the ExtrudeGeometry's bevel segments
+                            smoothedNormal = normalize(mix(vNormal, idealBevelNormal, 0.6));
                         }
                     }
 
-                    // Calculate modified normal based on distance to edge
-                    vec3 modifiedNormal = vNormal;
-
-                    if (minDist < bevelWidth) {
-                        // Smoothly transition from flat to beveled
-                        float bevelFactor = smoothstep(bevelWidth, 0.0, minDist);
-
-                        // Create outward-angled normal
-                        vec3 bevelNormal = normalize(vec3(nearestEdgeDir.x, nearestEdgeDir.y, 1.0));
-
-                        // Blend between original normal and bevel normal
-                        modifiedNormal = normalize(mix(vNormal, bevelNormal, bevelFactor));
-                    }
-
-                    // Lighting calculations
+                    // Lighting calculations with smoothed normals
                     vec3 finalColor = baseColor * ambientLightColor * 0.5;
 
                     // Add point lights
@@ -128,12 +146,12 @@ export class HexBevelMaterial extends ShaderMaterial {
                             float attenuation = pow(clamp(1.0 - lightDistance / maxDistance, 0.0, 1.0), decay);
 
                             // Diffuse
-                            float diff = max(dot(modifiedNormal, lightDir), 0.0);
+                            float diff = max(dot(smoothedNormal, lightDir), 0.0);
                             vec3 diffuse = diff * baseColor * pointLights[i].color * attenuation;
 
                             // Specular (Phong)
                             vec3 viewDir = normalize(cameraPosition - vWorldPosition);
-                            vec3 reflectDir = reflect(-lightDir, modifiedNormal);
+                            vec3 reflectDir = reflect(-lightDir, smoothedNormal);
                             float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
                             vec3 specular = spec * pointLights[i].color * attenuation;
 

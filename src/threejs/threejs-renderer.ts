@@ -3,9 +3,9 @@ import { Coordinate, Hex } from "../grid";
 import { HexRenderer } from "../renderer";
 import { GameTimer } from "../timer";
 import {
-    Camera, Color, CylinderGeometry, Material, Mesh, MeshPhongMaterial,
+    Camera, Color, Material, Mesh, MeshPhongMaterial,
     PerspectiveCamera, PointLight, Scene, WebGLRenderer, TorusGeometry,
-    AmbientLight, Vector3
+    AmbientLight, Vector3, BufferGeometry
 } from 'three'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
@@ -14,6 +14,7 @@ import * as TWEEN from '@tweenjs/tween.js'
 import { Group } from '@tweenjs/tween.js'
 import { tweenPromise } from './tween-promise'
 import { HexBevelMaterial } from './hex-bevel-material'
+import { createBeveledHexGeometry } from './hex-geometry'
 
 export class ThreeJsRenderer implements HexRenderer {
     scene: Scene
@@ -26,7 +27,8 @@ export class ThreeJsRenderer implements HexRenderer {
     tileHeight: number
 
     materials: Record<number, Material>
-    hexGeometry: CylinderGeometry
+    hexGeometry: BufferGeometry
+    hexRadius: number
 
     meshes: Record<number, Mesh>
     hexPositions: Map<number, { gridX: number; gridY: number;}> = new Map()
@@ -57,11 +59,20 @@ export class ThreeJsRenderer implements HexRenderer {
         this.renderer = new WebGLRenderer({canvas})
         this.renderer.setSize(canvas.width, canvas.height)
 
+        const radius = this.tileWidth / 2
+        // Make hex slightly smaller than tile size to create gaps between hexes
+        this.hexRadius = radius * 0.8
+
         this.materials = {}
         config.colors.forEach((color, i) => this.addMaterial(i, color))
 
-        const radius = this.tileWidth / 2
-        this.hexGeometry = new CylinderGeometry(radius, radius, 0.5, 6)
+        this.hexGeometry = createBeveledHexGeometry({
+            radius: this.hexRadius,
+            height: 0.5,
+            bevelSize: 0.15,
+            bevelThickness: 0.1,
+            bevelSegments: 3
+        })
 
         this.meshes = {}
 
@@ -254,7 +265,8 @@ export class ThreeJsRenderer implements HexRenderer {
         const material = new HexBevelMaterial({
             color: color,
             bevelWidth: 0.15,
-            shininess: 100
+            shininess: 100,
+            hexRadius: this.hexRadius
         })
         this.materials[colorIndex] = material
     }
@@ -262,9 +274,7 @@ export class ThreeJsRenderer implements HexRenderer {
     private addMesh(hex: Hex) {
         const material = this.materials[hex.colorIndex]
         const mesh = new Mesh(this.hexGeometry, material)
-        mesh.rotation.x = Math.PI / 2;
-        mesh.rotation.y = 0//Math.PI / 2;
-        mesh.rotation.z = 0// Math.PI / 6;
+        // No rotation needed - ExtrudeGeometry is already oriented correctly
         this.meshes[hex.id] = mesh
         this.scene.add(mesh)
         return mesh
@@ -303,8 +313,8 @@ export class ThreeJsRenderer implements HexRenderer {
 
     setCursorPosition(gridX: number, gridY: number): void {
         const pos = this.gridToPosition(gridX, gridY)
-        const targetTorusPos = { x: pos.x, y: pos.y, z: -10.5 }
-        const targetLightPos = { x: pos.x, y: pos.y, z: -9 }
+        const targetTorusPos = { x: pos.x, y: pos.y, z: -10.2 }
+        const targetLightPos = { x: pos.x, y: pos.y, z: -7 }
 
         // Remove all existing cursor animations
         this.cursorTweenGroup.removeAll()
