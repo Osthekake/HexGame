@@ -10,8 +10,8 @@ export type RendererType = 'canvas2d' | 'threejs';
 export type InputType = 'keyboard' | 'touch' | 'gamepad';
 
 // Load colors dynamically from CSS custom properties
-const style = getComputedStyle(document.documentElement);
-const loadColors = (count: number = 10): string[] => {
+export const loadColors = (count: number = 10): string[] => {
+  const style = getComputedStyle(document.body);
   return new Array(count).fill(0).map((_, i) => {
     const propertyName = `--tile-color-${i}`;
     return style.getPropertyValue(propertyName);
@@ -19,7 +19,7 @@ const loadColors = (count: number = 10): string[] => {
 };
 
 export interface GameConfig {
-  readonly renderer: RendererType;
+  renderer: RendererType;
   readonly input: InputType;
   readonly grid: {
     readonly width: number;
@@ -36,13 +36,22 @@ export interface GameConfig {
     textAnimationTime: number
   }
   readonly highscoreEnabled: boolean;
-  readonly cursorColor: string;
-  readonly backgroundColor: string;
-  readonly colors: string[];
+  cursorColor: string;
+  backgroundColor: string;
+  colors: string[];
 }
 
+// Load renderer from localStorage or use default
+const loadRenderer = (): RendererType => {
+  const saved = localStorage.getItem('renderer');
+  if (saved === 'canvas2d' || saved === 'threejs') {
+    return saved;
+  }
+  return 'threejs';
+};
+
 export const config: GameConfig = {
-  renderer: 'threejs',
+  renderer: loadRenderer(),
   input: 'keyboard',
   grid: {
     width: 7,
@@ -58,11 +67,24 @@ export const config: GameConfig = {
     vanishAnimationTime: 400,
     textAnimationTime: 600
   },
-  colors: loadColors(10),
-  cursorColor: style.getPropertyValue('--cursor-color'),
-  backgroundColor: style.getPropertyValue('--content-background-color'),
+  colors: [], // Will be loaded after body class is set
+  cursorColor: '', // Will be loaded after body class is set
+  backgroundColor: '', // Will be loaded after body class is set
   highscoreEnabled: false
 };
+
+// Update config colors and styles after body class is set
+export function updateConfigStyles(): void {
+  const style = getComputedStyle(document.documentElement);
+  config.colors = loadColors(10);
+  config.cursorColor = style.getPropertyValue('--cursor-color');
+  config.backgroundColor = style.getPropertyValue('--content-background-color');
+}
+
+// Save renderer preference to localStorage
+export function saveRenderer(renderer: RendererType): void {
+  localStorage.setItem('renderer', renderer);
+}
 
 export function createRenderer(
   type: RendererType,

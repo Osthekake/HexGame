@@ -53,14 +53,55 @@ body {
 
 .content {
     background-color: var(--content-background-color);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
     justify-content: center;
     align-items: center;
     gap: 2em;
+}
+#time {
+    display: flex;
+    flex-direction: column-reverse;
+ 
+    .timer-bar {
+        width: 2em;
+        background-color: var(--timer-color);
+    }
+}
+
+.renderer-threejs {
+    .content {
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        gap: 2em;
+    }
+
+    #time {
+        height: calc(100vh - 4em);
+    }
+}
+
+.renderer-canvas2d {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+
+    .content {
+        display: flex;
+        padding: 2em;
+        border-radius: 1em;
+        width: 600px;
+        height: 500px;
+        align-items: center;
+        align-content: center;
+        justify-content: stretch;
+    }
+
+    #time {
+        height: 100%;
+    }
 }
 
 #myCanvas {
@@ -70,19 +111,6 @@ body {
     width: auto;
     height: auto;
 }
-
-#time {
-    display: flex;
-    flex-direction: column-reverse;
-    height: calc(100vh - 4em);
-
-    .timer-bar {
-        width: 2em;
-        background-color: var(--timer-color);
-    }
-}
-
-
 
 .score-container {
     position: fixed;
@@ -118,4 +146,54 @@ body {
 
 .overlay-container > * {
     pointer-events: auto;
+}
+
+.settings-container {
+    position: fixed;
+    top: 2em;
+    right: 2em;
+    z-index: 10;
+}
+
+.settings-button {
+    font-size: var(--text-size-lg);
+    padding: 0.5em 0.75em;
+    cursor: pointer;
+}
+
+.settings-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5em;
+    padding: 1em;
+    background-color: var(--button-background-color);
+    border: 2px solid var(--button-border-color);
+    border-radius: 0.5em;
+    min-width: 200px;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.settings-menu.open {
+    display: flex;
+}
+
+.settings-title {
+    font-family: var(--text-font-family);
+    font-weight: var(--text-font-weight-normal);
+    font-size: var(--text-size-md);
+    color: var(--text-color);
+    margin: 0 0 0.5em 0;
+}
+
+.settings-option {
+    width: 100%;
+    text-align: center;
+}
+
+.settings-option.active {
+    background-color: var(--button-background-hover-color);
+    border-color: var(--text-color);
 }

@@ -1,13 +1,17 @@
 import { Grid } from './grid';
 import { Timer, Bar } from './timer';
 import { HighScore } from './highscore';
-import { config, createRenderer, createInputHandler } from './config';
+import { config, createRenderer, createInputHandler, saveRenderer, updateConfigStyles } from './config';
+import { SettingsMenu } from './settings';
+import type { RendererType } from './config';
+import type { HexRenderer } from './renderer';
+import type { InputHandler } from './input';
 import  './main.css'
 
 // Get DOM elements
-const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
-if (!canvas) {
-  throw new Error("Canvas element not found");
+const canvasContainer = document.getElementById("canvas-container") as HTMLElement;
+if (!canvasContainer) {
+  throw new Error("Canvas container not found");
 }
 
 const pointsElement = document.getElementById("points") as HTMLElement;
@@ -35,48 +39,19 @@ if (!restartButton) {
   throw new Error("Restart button not found");
 }
 
+// Game state
+let renderer: HexRenderer;
+let grid: Grid;
+let inputHandler: InputHandler;
+let resizeHandler: () => void;
+let canvas: HTMLCanvasElement;
 
-
-// Create instances
+// Persistent instances
 const bar = new Bar(timeElement);
 bar.render(100);
 
 const timer = new Timer(bar, config.timer.maxTime, config.timer.increment);
 const highScore = new HighScore(config.highscoreEnabled);
-
-// Set initial canvas size to be square and fill available space
-const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
-canvas.width = size;
-canvas.height = size;
-
-// Create renderer based on config
-const renderer = createRenderer(
-  config.renderer,
-  canvas,
-  config,
-  timer
-);
-
-// Resize canvas on window resize
-window.addEventListener('resize', () => {
-  const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
-  canvas.width = size;
-  canvas.height = size;
-  renderer.render();
-});
-
-// Create Grid (Animation is created internally)
-const grid = new Grid(
-  renderer,
-  pointsElement,
-  timer,
-  highScore,
-  config
-);
-
-// Initialize input controls based on config
-const inputHandler = createInputHandler(config.input);
-inputHandler.attach(grid);
 
 // Overlay visibility control
 function showGameOverUI(): void {
@@ -94,20 +69,104 @@ function hideOverlay(): void {
   restartButton.style.display = 'none';
 }
 
-// Set up game state callbacks
-grid.onGameStart = () => {
-  hideOverlay();
-};
+// Create a new canvas element
+function createCanvas(): HTMLCanvasElement {
+  // Remove old canvas if it exists
+  const oldCanvas = document.getElementById("myCanvas");
+  if (oldCanvas) {
+    oldCanvas.remove();
+  }
 
-grid.onGameOver = () => {
-  showGameOverUI();
-};
+  // Create new canvas
+  const newCanvas = document.createElement("canvas");
+  newCanvas.id = "myCanvas";
+  newCanvas.textContent = "Your browser does not support the canvas element.";
+  canvasContainer.appendChild(newCanvas);
 
-// Initialize the game
-grid.init();
+  return newCanvas;
+}
 
-// Show start UI initially (before first rotation)
-showStartUI();
+// Initialize the game with a specific renderer
+function initializeGame(rendererType: RendererType): void {
+  // Clean up existing instances if they exist
+  if (inputHandler) {
+    inputHandler.detach();
+  }
+
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler);
+  }
+
+  // Update body class to reflect current renderer
+  document.body.classList.remove('renderer-canvas2d', 'renderer-threejs');
+  document.body.classList.add(`renderer-${rendererType}`);
+
+  // Update config styles after body class is set (so CSS variables are correct)
+  updateConfigStyles();
+
+  // Create a fresh canvas element
+  canvas = createCanvas();
+
+  // Set initial canvas size to be square and fill available space
+  const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+  canvas.width = size;
+  canvas.height = size;
+
+  // Create renderer based on config
+  renderer = createRenderer(
+    rendererType,
+    canvas,
+    config,
+    timer
+  );
+
+  // Create resize handler
+  resizeHandler = () => {
+    const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+    canvas.width = size;
+    canvas.height = size;
+    renderer.render();
+  };
+  window.addEventListener('resize', resizeHandler);
+
+  // Create Grid (Animation is created internally)
+  grid = new Grid(
+    renderer,
+    pointsElement,
+    timer,
+    highScore,
+    config
+  );
+
+  // Initialize input controls based on config
+  inputHandler = createInputHandler(config.input);
+  inputHandler.attach(grid);
+
+  // Set up game state callbacks
+  grid.onGameStart = () => {
+    hideOverlay();
+  };
+
+  grid.onGameOver = () => {
+    showGameOverUI();
+  };
+
+  // Initialize the game
+  grid.init();
+
+  // Show start UI initially (before first rotation)
+  showStartUI();
+}
+
+// Function to switch renderer
+export function switchRenderer(newRenderer: RendererType): void {
+  saveRenderer(newRenderer);
+  (config as any).renderer = newRenderer;
+  initializeGame(newRenderer);
+}
+
+// Initialize with current renderer
+initializeGame(config.renderer);
 
 // Set up event listeners
 restartButton.addEventListener('click', () => {
@@ -121,3 +180,6 @@ if (clearHighscoreButton) {
     highScore.clear();
   });
 }
+
+// Initialize settings menu
+new SettingsMenu(switchRenderer);
