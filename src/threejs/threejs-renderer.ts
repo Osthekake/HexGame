@@ -71,7 +71,8 @@ export class ThreeJsRenderer implements HexRenderer {
             height: 0.5,
             bevelSize: 0.15,
             bevelThickness: 0.1,
-            bevelSegments: 3
+            bevelSegments: 3,
+            cornerRadius: 0.08  // Small rounded corners
         })
 
         this.meshes = {}
