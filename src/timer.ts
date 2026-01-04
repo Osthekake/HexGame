@@ -49,7 +49,7 @@ export class Timer implements GameTimer {
     if (this.bar && this.helduntil < newTime)
       this.bar.render(Math.round(this.time / this.maxTime * 100));
     else
-      console.log("timer held for another " + (this.helduntil - newTime));
+      console.debug("timer held for another " + (this.helduntil - newTime));
   }
 
   start(onStop: () => void): void {

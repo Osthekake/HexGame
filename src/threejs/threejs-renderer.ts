@@ -5,7 +5,7 @@ import { GameTimer } from "../timer";
 import {
     Camera, Color, Material, Mesh, MeshPhongMaterial,
     PerspectiveCamera, PointLight, Scene, WebGLRenderer, TorusGeometry,
-    AmbientLight, Vector3, BufferGeometry
+    AmbientLight, DirectionalLight, Vector3, BufferGeometry
 } from 'three'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
@@ -48,11 +48,16 @@ export class ThreeJsRenderer implements HexRenderer {
         this.camera = new PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 100)
 
         // Add ambient light for general illumination
-        const ambientLight = new AmbientLight(0xffffff, 1.5)
+        const ambientLight = new AmbientLight(0xffffff, 0.3)
         this.scene.add(ambientLight)
 
+        // Add directional light to make shading more visible
+        const directionalLight = new DirectionalLight(0xffffff, 2)
+        directionalLight.position.set(5, 5, 10)
+        this.scene.add(directionalLight)
+
         // Cursor point light
-        this.cursorLight = new PointLight(0xffffff, 5, 20)
+        this.cursorLight = new PointLight(0xffffff, 50, 20)
 
         this.tileWidth = 2.3
         this.tileHeight = 2.3*0.85
@@ -69,8 +74,8 @@ export class ThreeJsRenderer implements HexRenderer {
         this.hexGeometry = createBeveledHexGeometry({
             radius: this.hexRadius,
             height: 0.5,
-            bevelSize: 0.15,
-            bevelThickness: 0.1,
+            bevelSize: 0.25,
+            bevelThickness: 0.2,
             bevelSegments: 3,
             cornerRadius: 0.08  // Small rounded corners
         })
@@ -263,11 +268,12 @@ export class ThreeJsRenderer implements HexRenderer {
     }
 
     private addMaterial(colorIndex: number, color: string) {
-        const material = new HexBevelMaterial({
+        // Using built-in MeshPhongMaterial to test smooth normals
+        const material = new MeshPhongMaterial({
             color: color,
-            bevelWidth: 0.15,
-            shininess: 100,
-            hexRadius: this.hexRadius
+            shininess: 500,
+            
+            flatShading: false
         })
         this.materials[colorIndex] = material
     }

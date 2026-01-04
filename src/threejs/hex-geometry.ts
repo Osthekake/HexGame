@@ -1,4 +1,5 @@
 import { Shape, ExtrudeGeometry, BufferGeometry } from 'three'
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 export interface HexGeometryOptions {
     radius: number
@@ -89,7 +90,7 @@ export function createBeveledHexGeometry(options: HexGeometryOptions): BufferGeo
     }
 
     // Extrude the hexagon with bevel
-    const geometry = new ExtrudeGeometry(hexShape, {
+    const extrudedGeometry = new ExtrudeGeometry(hexShape, {
         depth: height,
         bevelEnabled: true,
         bevelThickness: bevelThickness,
@@ -98,9 +99,17 @@ export function createBeveledHexGeometry(options: HexGeometryOptions): BufferGeo
         curveSegments: 2 // Keep straight edges for hexagon
     })
 
-    // Rotate geometry to align with CylinderGeometry orientation
-    // ExtrudeGeometry extrudes along Z, but CylinderGeometry has Y as the height axis
-    //geometry.rotateZ(Math.PI / 2)
+    // Delete existing normals that ExtrudeGeometry created
+    // We want to compute fresh smooth normals after merging
+    extrudedGeometry.deleteAttribute('normal')
+
+    // Merge vertices at the same position so they can share normals
+    // This is necessary because ExtrudeGeometry creates duplicate vertices for each face
+    const geometry = mergeVertices(extrudedGeometry, 0.0001)
+    
+    // NOW compute smooth vertex normals on the merged geometry
+    // This will average face normals for all faces sharing each vertex
+    geometry.computeVertexNormals()
 
     // Center the geometry vertically (ExtrudeGeometry starts at 0)
     geometry.translate(0, 0, 0)
