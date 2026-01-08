@@ -3,6 +3,7 @@ import { Timer, Bar } from './timer';
 import { HighScore } from './highscore';
 import { config, createRenderer, createInputHandler, saveRenderer, saveInput, updateConfigStyles } from './config';
 import { SettingsMenu } from './settings';
+import { WakeLockManager } from './wakelock';
 import type { RendererType, InputType } from './config';
 import type { HexRenderer } from './renderer';
 import type { InputHandler } from './input';
@@ -53,6 +54,7 @@ bar.render(100);
 
 const timer = new Timer(bar, config.timer.maxTime, config.timer.increment);
 const highScore = new HighScore(config.highscoreEnabled);
+const wakeLock = new WakeLockManager();
 
 // Overlay visibility control
 function showGameOverUI(): void {
@@ -158,11 +160,13 @@ function initializeGame(rendererType: RendererType): void {
   grid.onGameStart = () => {
     isGameOver = false;
     hideOverlay();
+    wakeLock.request();
   };
 
   grid.onGameOver = () => {
     isGameOver = true;
     showGameOverUI();
+    wakeLock.release();
   };
 
   // Initialize the game
