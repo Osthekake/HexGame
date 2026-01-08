@@ -45,6 +45,7 @@ let grid: Grid;
 let inputHandler: InputHandler;
 let resizeHandler: () => void;
 let canvas: HTMLCanvasElement;
+let isGameOver = false;
 
 // Persistent instances
 const bar = new Bar(timeElement);
@@ -142,12 +143,25 @@ function initializeGame(rendererType: RendererType): void {
   inputHandler = createInputHandler(config.input);
   inputHandler.attach(grid);
 
+  // Set restart callback for gamepad input
+  if ('setRestartCallback' in inputHandler) {
+    (inputHandler as any).setRestartCallback(() => {
+      if (isGameOver) {
+        isGameOver = false;
+        grid.init();
+        showStartUI();
+      }
+    });
+  }
+
   // Set up game state callbacks
   grid.onGameStart = () => {
+    isGameOver = false;
     hideOverlay();
   };
 
   grid.onGameOver = () => {
+    isGameOver = true;
     showGameOverUI();
   };
 
@@ -162,6 +176,7 @@ function initializeGame(rendererType: RendererType): void {
 export function switchRenderer(newRenderer: RendererType): void {
   saveRenderer(newRenderer);
   config.renderer = newRenderer;
+  isGameOver = false;
   initializeGame(newRenderer);
 }
 
@@ -179,6 +194,17 @@ export function switchInput(newInput: InputType): void {
   inputHandler = createInputHandler(newInput);
   inputHandler.attach(grid);
 
+  // Set restart callback for gamepad input
+  if ('setRestartCallback' in inputHandler) {
+    (inputHandler as any).setRestartCallback(() => {
+      if (isGameOver) {
+        isGameOver = false;
+        grid.init();
+        showStartUI();
+      }
+    });
+  }
+
   // Update instruction text
   updateInstructionText(newInput);
 }
@@ -187,7 +213,7 @@ export function switchInput(newInput: InputType): void {
 function updateInstructionText(input: InputType): void {
   const instructionTexts: Record<InputType, string> = {
     keyboard: 'Use arrows to move. a, d to rotate. Rotate to begin timer.',
-    gamepad: 'Use D-pad to move. Shoulder buttons to rotate. Rotate to begin timer.',
+    gamepad: 'Use D-pad to move. Shoulder buttons to rotate. Start to restart. Rotate to begin timer.',
     touch: 'Swipe to move. Tap sides to rotate. Rotate to begin timer.'
   };
 
@@ -202,8 +228,11 @@ updateInstructionText(config.input);
 
 // Set up event listeners
 restartButton.addEventListener('click', () => {
-  grid.init();
-  showStartUI();
+  if (isGameOver) {
+    isGameOver = false;
+    grid.init();
+    showStartUI();
+  }
 });
 
 const clearHighscoreButton = document.getElementById("clear-highscore");

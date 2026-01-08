@@ -73,6 +73,7 @@ export class GamepadInput implements InputHandler {
   private target: Controllable | null = null;
   private animationFrameId: number | null = null;
   private buttonStates: Map<number, boolean> = new Map();
+  private onRestart?: () => void;
 
   // Button mappings (standard gamepad layout)
   private readonly BUTTON_LEFT = 14;
@@ -81,6 +82,7 @@ export class GamepadInput implements InputHandler {
   private readonly BUTTON_DOWN = 13;
   private readonly BUTTON_L1 = 4;  // Left shoulder
   private readonly BUTTON_R1 = 5;  // Right shoulder
+  private readonly BUTTON_START = 9; // Start button
 
   // D-pad threshold for analog sticks (as fallback)
   private readonly ANALOG_THRESHOLD = 0.5;
@@ -89,6 +91,10 @@ export class GamepadInput implements InputHandler {
     this.target = target;
     this.buttonStates.clear();
     this.startPolling();
+  }
+
+  setRestartCallback(callback: () => void): void {
+    this.onRestart = callback;
   }
 
   detach(): void {
@@ -148,6 +154,13 @@ export class GamepadInput implements InputHandler {
 
     this.handleButton(this.BUTTON_R1, gamepad.buttons[this.BUTTON_R1]?.pressed, () => {
       this.target!.rotateClockwise();
+    });
+
+    // Handle Start button for restart
+    this.handleButton(this.BUTTON_START, gamepad.buttons[this.BUTTON_START]?.pressed, () => {
+      if (this.onRestart) {
+        this.onRestart();
+      }
     });
 
     // Fallback: Handle left analog stick as D-pad
