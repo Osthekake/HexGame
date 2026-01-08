@@ -102,7 +102,7 @@ export class Grid implements Controllable {
     if (x < 0 || x > this.hexes_wide - 1 || y < 0 || y > this.hexes_high - 1)
       return undefined;
     if (!this.hexes[y])
-      console.log("hexes[" + y + "]: " + this.hexes[y]);
+      console.error("hexes[" + y + "]: " + this.hexes[y]);
     return this.hexes[y][x];
   }
 

@@ -20,7 +20,7 @@ export const loadColors = (count: number = 10): string[] => {
 
 export interface GameConfig {
   renderer: RendererType;
-  readonly input: InputType;
+  input: InputType;
   readonly grid: {
     readonly width: number;
     readonly height: number;
@@ -50,9 +50,18 @@ const loadRenderer = (): RendererType => {
   return 'threejs';
 };
 
+// Load input from localStorage or use default
+const loadInput = (): InputType => {
+  const saved = localStorage.getItem('input');
+  if (saved === 'keyboard' || saved === 'touch' || saved === 'gamepad') {
+    return saved;
+  }
+  return 'keyboard';
+};
+
 export const config: GameConfig = {
   renderer: loadRenderer(),
-  input: 'keyboard',
+  input: loadInput(),
   grid: {
     width: 7,
     height: 7
@@ -84,6 +93,11 @@ export function updateConfigStyles(): void {
 // Save renderer preference to localStorage
 export function saveRenderer(renderer: RendererType): void {
   localStorage.setItem('renderer', renderer);
+}
+
+// Save input preference to localStorage
+export function saveInput(input: InputType): void {
+  localStorage.setItem('input', input);
 }
 
 export function createRenderer(

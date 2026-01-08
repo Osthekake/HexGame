@@ -1,9 +1,9 @@
 import { Grid } from './grid';
 import { Timer, Bar } from './timer';
 import { HighScore } from './highscore';
-import { config, createRenderer, createInputHandler, saveRenderer, updateConfigStyles } from './config';
+import { config, createRenderer, createInputHandler, saveRenderer, saveInput, updateConfigStyles } from './config';
 import { SettingsMenu } from './settings';
-import type { RendererType } from './config';
+import type { RendererType, InputType } from './config';
 import type { HexRenderer } from './renderer';
 import type { InputHandler } from './input';
 import  './main.css'
@@ -161,12 +161,44 @@ function initializeGame(rendererType: RendererType): void {
 // Function to switch renderer
 export function switchRenderer(newRenderer: RendererType): void {
   saveRenderer(newRenderer);
-  (config as any).renderer = newRenderer;
+  config.renderer = newRenderer;
   initializeGame(newRenderer);
+}
+
+// Function to switch input
+export function switchInput(newInput: InputType): void {
+  saveInput(newInput);
+  config.input = newInput;
+
+  // Detach old input handler
+  if (inputHandler) {
+    inputHandler.detach();
+  }
+
+  // Create new input handler
+  inputHandler = createInputHandler(newInput);
+  inputHandler.attach(grid);
+
+  // Update instruction text
+  updateInstructionText(newInput);
+}
+
+// Function to update instruction text based on input type
+function updateInstructionText(input: InputType): void {
+  const instructionTexts: Record<InputType, string> = {
+    keyboard: 'Use arrows to move. a, d to rotate. Rotate to begin timer.',
+    gamepad: 'Use D-pad to move. Shoulder buttons to rotate. Rotate to begin timer.',
+    touch: 'Swipe to move. Tap sides to rotate. Rotate to begin timer.'
+  };
+
+  instructionText.textContent = instructionTexts[input];
 }
 
 // Initialize with current renderer
 initializeGame(config.renderer);
+
+// Set initial instruction text
+updateInstructionText(config.input);
 
 // Set up event listeners
 restartButton.addEventListener('click', () => {
@@ -182,4 +214,4 @@ if (clearHighscoreButton) {
 }
 
 // Initialize settings menu
-new SettingsMenu(switchRenderer);
+new SettingsMenu(switchRenderer, switchInput);
