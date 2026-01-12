@@ -5,7 +5,7 @@ import { GameTimer } from "../timer";
 import {
     Camera, Color, Material, Mesh, MeshPhongMaterial,
     PerspectiveCamera, PointLight, Scene, WebGLRenderer, TorusGeometry,
-    AmbientLight, DirectionalLight, Vector3, BufferGeometry
+    AmbientLight, DirectionalLight, Vector3, BufferGeometry, Raycaster, Vector2, Plane
 } from 'three'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
@@ -389,6 +389,92 @@ export class ThreeJsRenderer implements HexRenderer {
             return "transparent"
         }
         return this.config.colors[hexValue]
+    }
+
+    pixelToGrid(pixelX: number, pixelY: number): { gridX: number; gridY: number } | null {
+        // pixelX/pixelY are already relative to canvas (rect.left/top already subtracted in input handler)
+        const canvas = this.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+
+        // Convert to normalized device coordinates [-1, 1]
+        // Note: pixelX/pixelY are already canvas-relative, so don't subtract rect.left/top again
+        const ndcX = (pixelX / rect.width) * 2 - 1;
+        const ndcY = -(pixelY / rect.height) * 2 + 1;
+
+        // Create raycaster from camera through click point
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(new Vector2(ndcX, ndcY), this.camera);
+
+        // Intersect with plane at Z = -11 (where hexes are)
+        const hexPlane = new Plane(new Vector3(0, 0, 1), 11);
+        const intersection = new Vector3();
+        const didIntersect = raycaster.ray.intersectPlane(hexPlane, intersection);
+
+        if (!didIntersect || !intersection) {
+            // Ray didn't hit the plane - fallback to center
+            return this.findClosestViableHex(3, 3);
+        }
+
+        // World coordinates at hex plane
+        const worldX = intersection.x;
+        const worldY = intersection.y;
+
+        // Invert gridToPosition formulas (same approach as Canvas2D)
+        const radius = this.tileWidth / 2;
+
+        // Step 1: Invert Y formula: centerY = -(gridY * tileHeight + radius - 7)
+        const roughGridY = Math.round((7 - radius - worldY) / this.tileHeight);
+
+        // Step 2: Determine row offset for this Y position
+        const rowOffset = radius * (1 + (roughGridY + 1) % 2);
+
+        // Step 3: Invert X formula: centerX = gridX * tileWidth + rowOffset - 8
+        const roughGridX = Math.round((worldX + 8 - rowOffset) / this.tileWidth);
+
+        // Step 4: Find closest viable hex
+        return this.findClosestViableHex(roughGridX, roughGridY);
+    }
+
+    private findClosestViableHex(roughGridX: number, roughGridY: number): { gridX: number; gridY: number } | null {
+        // Clamp to grid bounds
+        const clampedX = Math.max(0, Math.min(6, roughGridX));
+        const clampedY = Math.max(0, Math.min(6, roughGridY));
+
+        // Search 3x3 area for closest viable hex
+        let closestX = clampedX;
+        let closestY = clampedY;
+        let closestDist = Infinity;
+
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const testX = clampedX + dx;
+                const testY = clampedY + dy;
+
+                // Skip if outside grid
+                if (testX < 0 || testX > 6 || testY < 0 || testY > 6) continue;
+
+                // Skip if not viable (must be [1,5])
+                if (testX < 1 || testX > 5 || testY < 1 || testY > 5) continue;
+
+                // Calculate Manhattan distance from rough position
+                const dist = Math.abs(testX - roughGridX) + Math.abs(testY - roughGridY);
+
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closestX = testX;
+                    closestY = testY;
+                }
+            }
+        }
+
+        return { gridX: closestX, gridY: closestY };
+    }
+
+    updateCameraAspect(width: number, height: number): void {
+        const camera = this.camera as PerspectiveCamera;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        this.renderer.setSize(width, height);
     }
 
 }

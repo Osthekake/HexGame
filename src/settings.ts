@@ -8,7 +8,7 @@ export class SettingsMenu {
   private rendererThreejsButton: HTMLElement;
   private inputKeyboardButton: HTMLElement;
   private inputGamepadButton: HTMLElement;
-  private inputGesturesButton: HTMLElement;
+  private inputTouchButton: HTMLElement;
   private onRendererChange?: (renderer: RendererType) => void;
   private onInputChange?: (input: InputType) => void;
 
@@ -26,7 +26,7 @@ export class SettingsMenu {
     this.rendererThreejsButton = this.getElement("renderer-threejs");
     this.inputKeyboardButton = this.getElement("input-keyboard");
     this.inputGamepadButton = this.getElement("input-gamepad");
-    this.inputGesturesButton = this.getElement("input-gestures");
+    this.inputTouchButton = this.getElement("input-touch");
 
     this.setupEventListeners();
     this.updateRendererButtonStates();
@@ -73,7 +73,7 @@ export class SettingsMenu {
       this.handleInputSwitch('gamepad');
     });
 
-    this.inputGesturesButton.addEventListener('click', () => {
+    this.inputTouchButton.addEventListener('click', () => {
       this.handleInputSwitch('touch');
     });
   }
@@ -86,7 +86,7 @@ export class SettingsMenu {
   private updateInputButtonStates(): void {
     this.inputKeyboardButton.classList.toggle('active', config.input === 'keyboard');
     this.inputGamepadButton.classList.toggle('active', config.input === 'gamepad');
-    this.inputGesturesButton.classList.toggle('active', config.input === 'touch');
+    this.inputTouchButton.classList.toggle('active', config.input === 'touch');
   }
 
   private handleRendererSwitch(renderer: RendererType): void {

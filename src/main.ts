@@ -4,6 +4,7 @@ import { HighScore } from './highscore';
 import { config, createRenderer, createInputHandler, saveRenderer, saveInput, updateConfigStyles } from './config';
 import { SettingsMenu } from './settings';
 import { WakeLockManager } from './wakelock';
+import { ThreeJsRenderer } from './threejs/threejs-renderer';
 import type { RendererType, InputType } from './config';
 import type { HexRenderer } from './renderer';
 import type { InputHandler } from './input';
@@ -110,8 +111,23 @@ function initializeGame(rendererType: RendererType): void {
   // Create a fresh canvas element
   canvas = createCanvas();
 
+  // Helper function to calculate canvas size based on renderer type
+  const calculateCanvasSize = (): number => {
+    if (rendererType === 'canvas2d') {
+      // Account for score container (top), instruction text (bottom), and padding
+      // Score container + padding ≈ 4em, instruction text + button + padding ≈ 8em = 12em total
+      // Using approximate 16px per em = 192px vertical space needed
+      const verticalReserved = 192;
+      const horizontalPadding = 64; // 4em padding
+      return Math.min(window.innerHeight - verticalReserved, window.innerWidth - horizontalPadding);
+    } else {
+      // ThreeJS mode uses full viewport with minimal padding
+      return Math.min(window.innerHeight - 64, window.innerWidth - 64);
+    }
+  };
+
   // Set initial canvas size to be square and fill available space
-  const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+  const size = calculateCanvasSize();
   canvas.width = size;
   canvas.height = size;
 
@@ -125,9 +141,15 @@ function initializeGame(rendererType: RendererType): void {
 
   // Create resize handler
   resizeHandler = () => {
-    const size = Math.min(window.innerHeight - 64, window.innerWidth - 64);
+    const size = calculateCanvasSize();
     canvas.width = size;
     canvas.height = size;
+
+    // Update Three.js camera if using ThreeJsRenderer
+    if (renderer instanceof ThreeJsRenderer) {
+      renderer.updateCameraAspect(canvas.width, canvas.height);
+    }
+
     renderer.render();
   };
   window.addEventListener('resize', resizeHandler);
@@ -143,7 +165,7 @@ function initializeGame(rendererType: RendererType): void {
 
   // Initialize input controls based on config
   inputHandler = createInputHandler(config.input);
-  inputHandler.attach(grid);
+  inputHandler.attach(grid, renderer, grid);
 
   // Set restart callback for gamepad input
   if ('setRestartCallback' in inputHandler) {
@@ -196,7 +218,7 @@ export function switchInput(newInput: InputType): void {
 
   // Create new input handler
   inputHandler = createInputHandler(newInput);
-  inputHandler.attach(grid);
+  inputHandler.attach(grid, renderer, grid);
 
   // Set restart callback for gamepad input
   if ('setRestartCallback' in inputHandler) {
@@ -218,7 +240,7 @@ function updateInstructionText(input: InputType): void {
   const instructionTexts: Record<InputType, string> = {
     keyboard: 'Use arrows to move. a, d to rotate. Rotate to begin timer.',
     gamepad: 'Use D-pad to move. Shoulder buttons to rotate. Start to restart. Rotate to begin timer.',
-    touch: 'Swipe to move. Tap sides to rotate. Rotate to begin timer.'
+    touch: 'Tap to move cursor. Swipe left/right to rotate. Rotate to begin timer.'
   };
 
   instructionText.textContent = instructionTexts[input];

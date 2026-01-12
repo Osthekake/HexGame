@@ -16,8 +16,6 @@ export class Canvas2DRenderer implements HexRenderer {
 
   constructor(canvas: HTMLCanvasElement, private config: GameConfig, private timer: GameTimer) {
     this.canvas = canvas;
-    canvas.width = 500
-    canvas.height = 500
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not get 2d context");
     this.ctx = ctx;
@@ -235,5 +233,67 @@ export class Canvas2DRenderer implements HexRenderer {
         }
       }
     })
+  }
+
+  pixelToGrid(pixelX: number, pixelY: number): { gridX: number; gridY: number } | null {
+    // Note: pixelX/pixelY are in display space (relative to rect)
+    // We need to convert to canvas space (internal resolution)
+    const rect = this.canvas.getBoundingClientRect();
+
+    // Scale from display space to canvas space
+    const canvasX = (pixelX / rect.width) * this.canvas.width;
+    const canvasY = (pixelY / rect.height) * this.canvas.height;
+
+    // Now proceed with inverse transformation using canvas coordinates
+    const tileWidth = this.canvas.width / this.hexesWide;
+    const tileHeight = (this.canvas.height / this.hexesHigh) * 0.85;
+    const radius = tileWidth / 2;
+
+    // Step 1: Invert Y formula: centerY = gridY * tileHeight + radius + 25
+    const roughGridY = Math.round((canvasY - radius - 25) / tileHeight);
+
+    // Step 2: Determine row offset for this Y position
+    const rowOffset = radius * (1 + (roughGridY + 1) % 2);
+
+    // Step 3: Invert X formula: centerX = gridX * tileWidth + rowOffset
+    const roughGridX = Math.round((canvasX - rowOffset) / tileWidth);
+
+    // Step 4: Find closest viable hex
+    return this.findClosestViableHex(roughGridX, roughGridY);
+  }
+
+  private findClosestViableHex(roughGridX: number, roughGridY: number): { gridX: number; gridY: number } | null {
+    // Clamp to grid bounds
+    const clampedX = Math.max(0, Math.min(6, roughGridX));
+    const clampedY = Math.max(0, Math.min(6, roughGridY));
+
+    // Search 3x3 area for closest viable hex
+    let closestX = clampedX;
+    let closestY = clampedY;
+    let closestDist = Infinity;
+
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const testX = clampedX + dx;
+        const testY = clampedY + dy;
+
+        // Skip if outside grid
+        if (testX < 0 || testX > 6 || testY < 0 || testY > 6) continue;
+
+        // Skip if not viable (must be [1,5])
+        if (testX < 1 || testX > 5 || testY < 1 || testY > 5) continue;
+
+        // Calculate Manhattan distance from rough position
+        const dist = Math.abs(testX - roughGridX) + Math.abs(testY - roughGridY);
+
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestX = testX;
+          closestY = testY;
+        }
+      }
+    }
+
+    return { gridX: closestX, gridY: closestY };
   }
 }

@@ -1,3 +1,7 @@
+import Hammer from 'hammerjs';
+import type { HexRenderer } from './renderer';
+import type { Grid } from './grid';
+
 export interface Controllable {
   moveLeft(): void;
   moveUp(): void;
@@ -8,7 +12,7 @@ export interface Controllable {
 }
 
 export interface InputHandler {
-  attach(target: Controllable): void;
+  attach(target: Controllable, renderer?: any, grid?: any): void;
   detach(): void;
 }
 
@@ -57,15 +61,107 @@ export class KeyboardInput implements InputHandler {
 
 export class TouchInput implements InputHandler {
   private target: Controllable | null = null;
+  private renderer: HexRenderer | null = null;
+  private grid: Grid | null = null;
+  private hammer: HammerManager | null = null;
 
-  attach(target: Controllable): void {
+  attach(target: Controllable, renderer?: any, grid?: any): void {
     this.target = target;
-    // TODO: Implement touch/swipe controls
-    console.log('Touch input not yet implemented');
+    this.renderer = renderer;
+    this.grid = grid;
+
+    if (!renderer || !grid) {
+      console.error('TouchInput requires renderer and grid references');
+      return;
+    }
+
+    // Get canvas element
+    const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
+    if (!canvas) {
+      console.error('Canvas not found for touch input');
+      return;
+    }
+
+    // Initialize Hammer.js
+    this.hammer = new Hammer(canvas);
+
+    // Configure swipe recognizer for horizontal swipes only
+    this.hammer.get('swipe').set({
+      direction: Hammer.DIRECTION_HORIZONTAL,
+      threshold: 30,      // Minimum distance for swipe
+      velocity: 0.3       // Minimum velocity
+    });
+
+    // Configure tap recognizer
+    this.hammer.get('tap').set({
+      time: 250,          // Maximum time for tap
+      threshold: 10       // Maximum movement for tap
+    });
+
+    // Prevent tap from firing during swipe
+    this.hammer.get('tap').requireFailure('swipe');
+
+    // Register event handlers
+    this.hammer.on('swipeleft', this.handleSwipeLeft.bind(this));
+    this.hammer.on('swiperight', this.handleSwipeRight.bind(this));
+    this.hammer.on('tap', this.handleTap.bind(this));
   }
 
   detach(): void {
+    if (this.hammer) {
+      this.hammer.destroy();
+      this.hammer = null;
+    }
     this.target = null;
+    this.renderer = null;
+    this.grid = null;
+  }
+
+  private handleSwipeLeft(event: HammerInput): void {
+    if (!this.target || !this.grid) return;
+
+    // Check game lock before rotating
+    if (this.grid.lock()) return;
+
+    // Left swipe = counter-clockwise (matches 'A' key)
+    this.target.rotateCounterClockwise();
+  }
+
+  private handleSwipeRight(event: HammerInput): void {
+    if (!this.target || !this.grid) return;
+
+    // Check game lock before rotating
+    if (this.grid.lock()) return;
+
+    // Right swipe = clockwise (matches 'D' key)
+    this.target.rotateClockwise();
+  }
+
+  private handleTap(event: HammerInput): void {
+    if (!this.target || !this.renderer || !this.grid) return;
+
+    // Check game lock before moving
+    if (this.grid.lock()) return;
+
+    // Get tap coordinates relative to canvas
+    const canvas = event.target as HTMLCanvasElement;
+    const rect = canvas.getBoundingClientRect();
+    const pixelX = event.center.x - rect.left;
+    const pixelY = event.center.y - rect.top;
+
+    // Convert pixel to grid coordinates
+    // Renderers now return only viable hexes [1,5], or null if impossible
+    const gridCoord = this.renderer.pixelToGrid(pixelX, pixelY);
+
+    if (!gridCoord) {
+      // Renderer couldn't find a valid hex
+      return;
+    }
+
+    // Move cursor to tapped position (already validated by renderer)
+    this.grid.cursor.x = gridCoord.gridX;
+    this.grid.cursor.y = gridCoord.gridY;
+    this.grid.update();
   }
 }
 

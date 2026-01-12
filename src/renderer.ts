@@ -16,6 +16,9 @@ export interface HexRenderer {
   // Color lookup helper (moved from Grid)
   getColorForHex(hexValue: number): string;
 
+  // Touch input support - convert screen coordinates to grid coordinates
+  pixelToGrid(pixelX: number, pixelY: number): { gridX: number; gridY: number } | null;
+
   // Gradient creation helper
   //createHorizontalGradient(colorStops: Array<{ offset: number; color: string }>): CanvasGradient;
 }

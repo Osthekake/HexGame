@@ -6,6 +6,9 @@
   <title>Hex Game</title>
 </head>
 <body>
+  <div class="score-container">
+    <span class="score-text">Score: <span class="score-points" id="points"></span></span>
+  </div>
   <div class="horizontal-flex content">
     <div id="canvas-container">
       <canvas id="myCanvas" >
@@ -15,9 +18,6 @@
     <div id="time" ></div>
   </div>
 
-  <div class="score-container">
-    <span class="score-text">Score: <span class="score-points" id="points"></span></span>
-  </div>
 
   <div class="settings-container">
     <button class="button settings-button" id="settings-button">⚙</button>
@@ -29,7 +29,7 @@
       <h3 class="settings-title">Input</h3>
       <button class="button settings-option" id="input-keyboard">Keyboard</button>
       <button class="button settings-option" id="input-gamepad">Gamepad</button>
-      <button class="button settings-option" id="input-gestures" disabled>Gestures</button>
+      <button class="button settings-option" id="input-touch">Touch</button>
     </div>
   </div>
 

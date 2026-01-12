@@ -92,8 +92,8 @@ body {
         display: flex;
         padding: 2em;
         border-radius: 1em;
-        width: 600px;
-        height: 500px;
+        /*width: 600px;
+        height: 500px;*/
         align-items: center;
         align-content: center;
         justify-content: stretch;
@@ -110,6 +110,7 @@ body {
     max-height: calc(100vh - 4em);
     width: auto;
     height: auto;
+    touch-action: none; /* Disable default touch behaviors for gesture control */
 }
 
 .score-container {
