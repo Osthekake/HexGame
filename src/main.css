@@ -87,6 +87,12 @@ body {
     }
 }
 
+body.renderer-threejs .overlay-container {
+    padding-bottom: 2em;
+    justify-content: center;
+    padding-top: calc(50% + 6em);
+}
+
 body.renderer-canvas2d {
     display: flex;
     align-items: center;
