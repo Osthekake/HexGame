@@ -90,9 +90,17 @@ export class Bar implements ProgressBar {
   }
 
   render(percentage: number): void {
-    //console.log("Rendering timer at " + percentage + "%");
-    const html = "<div class='timer-bar' style='height: " + percentage + "%;'>" +
-      "</div>";
-    this.element.innerHTML = html;
+    // Determine orientation based on container dimensions
+    const isHorizontal = this.element.offsetWidth > this.element.offsetHeight;
+
+    if (isHorizontal) {
+      // Horizontal bar (mobile) - fills left to right
+      const html = "<div class='timer-bar' style='width: " + percentage + "%; height: 100%;'></div>";
+      this.element.innerHTML = html;
+    } else {
+      // Vertical bar (desktop) - fills bottom to top
+      const html = "<div class='timer-bar' style='height: " + percentage + "%; width: 100%;'></div>";
+      this.element.innerHTML = html;
+    }
   }
 }

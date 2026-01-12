@@ -37,6 +37,7 @@ export interface GameConfig {
   }
   readonly highscoreEnabled: boolean;
   cursorColor: string;
+  cursorGlowColor: string;
   backgroundColor: string;
   colors: string[];
 }
@@ -50,13 +51,32 @@ const loadRenderer = (): RendererType => {
   return 'threejs';
 };
 
+// Detect if device is a mobile/touch device
+const isMobileDevice = (): boolean => {
+  // Check for touch capability
+  const hasTouchCapability =
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0 ||
+    (navigator as any).msMaxTouchPoints > 0;
+
+  // Check user agent for mobile devices
+  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+  const isMobileUA = mobileRegex.test(navigator.userAgent);
+
+  // Device is mobile if it has touch AND mobile user agent
+  // This avoids false positives from touch-enabled laptops
+  return hasTouchCapability && isMobileUA;
+};
+
 // Load input from localStorage or use default
 const loadInput = (): InputType => {
   const saved = localStorage.getItem('input');
   if (saved === 'keyboard' || saved === 'touch' || saved === 'gamepad') {
+    // Always respect user's saved preference
     return saved;
   }
-  return 'keyboard';
+  // No saved preference - use default based on device type
+  return isMobileDevice() ? 'touch' : 'keyboard';
 };
 
 export const config: GameConfig = {
@@ -78,6 +98,7 @@ export const config: GameConfig = {
   },
   colors: [], // Will be loaded after body class is set
   cursorColor: '', // Will be loaded after body class is set
+  cursorGlowColor: '', // Will be loaded after body class is set
   backgroundColor: '', // Will be loaded after body class is set
   highscoreEnabled: false
 };
@@ -87,6 +108,7 @@ export function updateConfigStyles(): void {
   const style = getComputedStyle(document.documentElement);
   config.colors = loadColors(10);
   config.cursorColor = style.getPropertyValue('--cursor-color');
+  config.cursorGlowColor = style.getPropertyValue('--cursor-glow-color');
   config.backgroundColor = style.getPropertyValue('--content-background-color');
 }
 

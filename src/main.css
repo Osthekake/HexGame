@@ -44,11 +44,17 @@
     }
 }
 
-body {
-    background-color: var(--body-background-color);
+html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--body-background-color);
 }
 
 .content {
@@ -71,37 +77,35 @@ body {
     .content {
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         gap: 2em;
     }
 
     #time {
-        height: calc(100vh - 4em);
+        height: calc(100% - 4em);
     }
 }
 
-.renderer-canvas2d {
+body.renderer-canvas2d {
     display: flex;
-    width: 100vw;
-    height: 100vh;
     align-items: center;
     justify-content: center;
+}
 
-    .content {
-        display: flex;
-        padding: 2em;
-        border-radius: 1em;
-        /*width: 600px;
-        height: 500px;*/
-        align-items: center;
-        align-content: center;
-        justify-content: stretch;
-    }
+.renderer-canvas2d .content {
+    display: flex;
+    padding: 2em;
+    border-radius: 1em;
+    /*width: 600px;
+    height: 500px;*/
+    align-items: center;
+    align-content: center;
+    justify-content: stretch;
+}
 
-    #time {
-        height: 100%;
-    }
+.renderer-canvas2d #time {
+    height: 100%;
 }
 
 #myCanvas {
@@ -197,4 +201,124 @@ body {
 .settings-option.active {
     background-color: var(--button-background-hover-color);
     border-color: var(--text-color);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  /* Remove padding from horizontal-flex on mobile */
+  .horizontal-flex {
+    padding: 0;
+    gap: 0.5em;
+  }
+
+  /* Change main content from horizontal to vertical layout */
+  .renderer-canvas2d .content {
+    flex-direction: column;
+    padding: 0;
+    gap: 0.5em;
+    border-radius: 0;
+  }
+
+  /* Canvas container full width */
+  #canvas-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Canvas full width on mobile - remove max-width constraint */
+  #myCanvas {
+    max-width: none;
+    max-height: calc(100vh - 14em);
+  }
+
+  /* Timer container: vertical → horizontal */
+  #time {
+    width: 100%;
+    height: 2em;
+    flex-direction: row;
+  }
+
+  /* Timer bar: height-based → width-based (TypeScript handles inline styles) */
+  #time .timer-bar {
+    width: 0%; /* Set dynamically via inline style */
+    height: 100%;
+  }
+
+  /* Reduce spacing on mobile */
+  .score-container {
+    padding-top: 1em;
+  }
+
+  .settings-container {
+    top: 1em;
+    right: 1em;
+  }
+
+  .overlay-container {
+    padding-bottom: 1em;
+    gap: 1em;
+  }
+
+  /* Typography and touch target sizes */
+  .button {
+    padding: 0.75em;
+    font-size: var(--text-size-md);
+  }
+
+  .settings-button {
+    font-size: var(--text-size-md);
+    padding: 0.5em 0.75em;
+  }
+
+  .instruction-text {
+    font-size: var(--text-size-md);
+    text-align: center;
+    padding: 0 1em;
+  }
+
+  .score-text {
+    font-size: var(--text-size-md);
+  }
+
+  /* Settings menu responsive */
+  .settings-menu {
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 2em);
+  }
+
+  /* Three.js renderer mobile layout */
+  .renderer-threejs .content {
+    flex-direction: column;
+    padding: 0;
+    gap: 1em;
+  }
+
+  .renderer-threejs #time {
+    width: 100%;
+    height: 2em;
+    flex-direction: row;
+  }
+}
+
+/* Very small mobile screens */
+@media (max-width: 480px) {
+  .renderer-canvas2d .content {
+    padding: 0.5em;
+  }
+
+  #myCanvas {
+    max-width: none;
+    max-height: none;
+  }
+
+  .button {
+    padding: 0.5em;
+  }
+
+  .instruction-text {
+    font-size: var(--text-size-sm);
+  }
 }

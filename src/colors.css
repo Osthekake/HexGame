@@ -3,6 +3,7 @@
 
     --timer-color: rgb(80, 186, 34);
     --cursor-color: rgb(230, 230, 230);
+    --cursor-glow-color: rgba(230, 230, 230, 0.5);
 
     --body-background-color: rgb(216, 216, 216);
     --content-background-color: rgb(14, 14, 14);

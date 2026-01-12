@@ -11,6 +11,7 @@ export class Canvas2DRenderer implements HexRenderer {
   private hexesHigh: number;
   private colors: string[];
   private cursorColor: string;
+  private cursorGlowColor: string;
   private hexPositions: Map<number, { gridX: number; gridY: number; hex: Hex }> = new Map();
   private cursorPosition: { gridX: number; gridY: number } | null = null;
 
@@ -23,6 +24,7 @@ export class Canvas2DRenderer implements HexRenderer {
     this.hexesHigh = config.grid.height;
     this.colors = config.colors;
     this.cursorColor = config.cursorColor;
+    this.cursorGlowColor = config.cursorGlowColor;
   }
   reset() {
     this.hexPositions.clear()
@@ -110,10 +112,16 @@ export class Canvas2DRenderer implements HexRenderer {
 
     const pixel = this.gridToPixel(this.cursorPosition.gridX, this.cursorPosition.gridY);
     const radius = this.getHexRadius();
+    const lineWidth = this.canvas.width * 0.005;
 
     this.ctx.save();
-    this.ctx.lineWidth = 5;
+
+    // Draw glow/shadow effect
+    this.ctx.shadowColor = this.cursorGlowColor;
+    this.ctx.shadowBlur = lineWidth * 4;
+    this.ctx.lineWidth = lineWidth;
     this.ctx.strokeStyle = this.cursorColor;
+
     this.ctx.beginPath();
     this.ctx.moveTo(pixel.x, pixel.y + radius + 5);
     for (let i = 0; i < 6; i++) {

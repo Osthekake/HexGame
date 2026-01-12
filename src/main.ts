@@ -113,16 +113,27 @@ function initializeGame(rendererType: RendererType): void {
 
   // Helper function to calculate canvas size based on renderer type
   const calculateCanvasSize = (): number => {
+    const isMobile = window.innerWidth <= 768;
     if (rendererType === 'canvas2d') {
-      // Account for score container (top), instruction text (bottom), and padding
-      // Score container + padding ≈ 4em, instruction text + button + padding ≈ 8em = 12em total
-      // Using approximate 16px per em = 192px vertical space needed
-      const verticalReserved = 192;
-      const horizontalPadding = 64; // 4em padding
-      return Math.min(window.innerHeight - verticalReserved, window.innerWidth - horizontalPadding);
+      // Check if mobile viewport
+      console.log("width calculation", window.innerWidth, isMobile);
+      if (isMobile) {
+        // Mobile: Canvas always uses full viewport width
+        return window.innerWidth;
+      } else {
+        // Desktop: Original calculation
+        const verticalReserved = 192; // 12em at 16px/em
+        const horizontalPadding = 64;  // 4em at 16px/em
+        return Math.min(window.innerHeight - verticalReserved, window.innerWidth - horizontalPadding);
+      }
     } else {
-      // ThreeJS mode uses full viewport with minimal padding
-      return Math.min(window.innerHeight - 64, window.innerWidth - 64);
+      if (isMobile) {
+        // Mobile: Canvas always uses full viewport width
+        return window.innerWidth;
+      } else {
+        // ThreeJS mode uses full viewport with minimal padding
+        return Math.min(window.innerHeight - 64, window.innerWidth - 64);
+      }
     }
   };
 
