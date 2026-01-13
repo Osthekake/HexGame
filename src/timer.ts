@@ -7,6 +7,7 @@ export interface GameTimer {
   addTime(time: number): void;
   startIfNotRunning(onStop: () => void): void;
   isRunning(): boolean;
+  reset(): void;
 }
 
 export class Timer implements GameTimer {
@@ -16,6 +17,7 @@ export class Timer implements GameTimer {
   private lastTime: number = -1;
   private helduntil: number = 0;
   private id: number | undefined;
+  private rafId: number | undefined;
   private bar: ProgressBar;
   private onStop: (() => void) | undefined;
 
@@ -47,22 +49,34 @@ export class Timer implements GameTimer {
         this.onStop();
     }
     if (this.bar && this.helduntil < newTime)
-      this.bar.render(Math.round(this.time / this.maxTime * 100));
+      this.bar.render(this.time / this.maxTime * 100);
     else
       console.debug("timer held for another " + (this.helduntil - newTime));
+  }
+
+  private animate(): void {
+    this.tick();
+    if (this.id !== undefined) {
+      this.rafId = requestAnimationFrame(() => this.animate());
+    }
   }
 
   start(onStop: () => void): void {
     this.time = this.maxTime;
     this.onStop = onStop;
     this.lastTime = new Date().getTime();
-    this.id = window.setInterval(() => this.tick(), this.increment);
+    this.id = window.setInterval(() => {}, this.increment); // Keep for isRunning check
+    this.rafId = requestAnimationFrame(() => this.animate());
   }
 
   stop(): void {
     if (this.id !== undefined) {
       window.clearInterval(this.id);
       this.id = undefined;
+    }
+    if (this.rafId !== undefined) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = undefined;
     }
   }
 
@@ -79,6 +93,12 @@ export class Timer implements GameTimer {
       return;
     else
       this.start(onStop);
+  }
+
+  reset(): void {
+    this.stop();
+    this.time = this.maxTime;
+    this.bar.render(100);
   }
 }
 

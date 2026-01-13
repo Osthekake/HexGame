@@ -1,5 +1,5 @@
-:root {
 
+:root {
 
     --timer-color: rgb(80, 186, 34);
     --cursor-color: rgb(230, 230, 230);
@@ -8,9 +8,9 @@
     --body-background-color: rgb(216, 216, 216);
     --content-background-color: rgb(14, 14, 14);
 
-    --button-border-color: rgb(53, 53, 53);
-    --button-background-color: #c84c49;
-    --button-background-hover-color: #e26d6b;
+    --button-border-color: #294076;
+    --button-background-color: #6684cc;
+    --button-background-hover-color: #8ba3db;
     --button-text-color: rgb(235, 235, 255);
     --button-text-shadow-color: rgb(11, 11, 48);
 
@@ -34,6 +34,9 @@ body.renderer-canvas2d {
     --tile-color-8: #a361c7;
     --tile-color-9: #c76090;
 
+    --timer-gradient-start: #5eba59;
+    --timer-gradient-end: #558749;
+
     --text-color: rgb(37, 37, 37);
 }
 
@@ -48,6 +51,9 @@ body.renderer-threejs {
     --tile-color-7: #6684cc;
     --tile-color-8: #a361c7;
     --tile-color-9: #412a3f;
+
+    --timer-gradient-start: #719e6f;
+    --timer-gradient-end: #326825;
 
     --text-color: rgb(194, 194, 194);
 }

@@ -183,6 +183,7 @@ function initializeGame(rendererType: RendererType): void {
     (inputHandler as any).setRestartCallback(() => {
       if (isGameOver) {
         isGameOver = false;
+        timer.reset();
         grid.init();
         showStartUI();
       }
@@ -236,6 +237,7 @@ export function switchInput(newInput: InputType): void {
     (inputHandler as any).setRestartCallback(() => {
       if (isGameOver) {
         isGameOver = false;
+        timer.reset();
         grid.init();
         showStartUI();
       }
@@ -249,9 +251,9 @@ export function switchInput(newInput: InputType): void {
 // Function to update instruction text based on input type
 function updateInstructionText(input: InputType): void {
   const instructionTexts: Record<InputType, string> = {
-    keyboard: 'Use arrows to move. a, d to rotate. Rotate to begin timer.',
-    gamepad: 'Use D-pad to move. Shoulder buttons to rotate. Start to restart. Rotate to begin timer.',
-    touch: 'Tap to move cursor. Swipe left/right to rotate. Rotate to begin timer.'
+    keyboard: 'Get 3+ in a row. Use arrows to move. a, d to rotate. Rotate to begin timer.',
+    gamepad: 'Get 3+ in a row. Use D-pad to move. Shoulder buttons to rotate. Start to restart. Rotate to begin timer.',
+    touch: 'Get 3+ in a row. Tap to move cursor. Swipe left/right to rotate. Rotate to begin timer.'
   };
 
   instructionText.textContent = instructionTexts[input];
@@ -267,6 +269,7 @@ updateInstructionText(config.input);
 restartButton.addEventListener('click', () => {
   if (isGameOver) {
     isGameOver = false;
+    timer.reset();
     grid.init();
     showStartUI();
   }

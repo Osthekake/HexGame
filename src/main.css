@@ -25,6 +25,7 @@
 .score-text {
     font-size: var(--text-size-lg);
     color: var(--text-color);
+    padding: 1.5em 2em;
 }
 
 .button {
@@ -63,13 +64,26 @@ body {
     align-items: center;
     gap: 2em;
 }
+@media (max-width: 768px) {
+  #time {
+      display: flex;
+      flex-direction: column-reverse;
+      width: 2em;
+
+      .timer-bar {
+          background: linear-gradient(to right, var(--timer-gradient-start), var(--timer-gradient-end));
+          transition: height 0.1s linear, width 0.1s linear;
+      }
+  }
+}
 #time {
     display: flex;
     flex-direction: column-reverse;
- 
+    width: 2em;
+
     .timer-bar {
-        width: 2em;
-        background-color: var(--timer-color);
+        background: linear-gradient(to bottom, var(--timer-gradient-start), var(--timer-gradient-end));
+        transition: height 0.1s linear;
     }
 }
 
@@ -83,14 +97,14 @@ body {
     }
 
     #time {
-        height: calc(100% - 4em);
+      height: calc(100% - 4em);
     }
-}
+  }
 
 body.renderer-threejs .overlay-container {
     padding-bottom: 2em;
     justify-content: center;
-    padding-top: calc(50% + 6em);
+    padding-top: none
 }
 
 body.renderer-canvas2d {
@@ -105,13 +119,9 @@ body.renderer-canvas2d {
     border-radius: 1em;
     /*width: 600px;
     height: 500px;*/
-    align-items: center;
+    align-items: stretch;
     align-content: center;
     justify-content: stretch;
-}
-
-.renderer-canvas2d #time {
-    height: 100%;
 }
 
 #myCanvas {
@@ -130,7 +140,6 @@ body.renderer-canvas2d {
     width: 100vw;
     display: flex;
     justify-content: center;
-    padding-top: 2em;
     z-index: 10;
     pointer-events: none;
 }
@@ -157,6 +166,11 @@ body.renderer-canvas2d {
 
 .overlay-container > * {
     pointer-events: auto;
+}
+
+#restart-button {
+    font-size: var(--text-size-lg);
+    padding: 1.5em 2em;
 }
 
 .settings-container {
@@ -307,6 +321,11 @@ body.renderer-canvas2d {
     height: 2em;
     flex-direction: row;
   }
+}
+
+.instruction-text {
+  position: absolute;
+  bottom: 3em;
 }
 
 /* Very small mobile screens */
