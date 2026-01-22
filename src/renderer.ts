@@ -6,7 +6,6 @@ export interface HexRenderer {
   render(): void;
   setHexPosition(gridX: number, gridY: number, hex: Hex): void;
   setCursorPosition(gridX: number, gridY: number): void;
-  drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void;
   //animations
   animateVanish(uniq: (Hex | undefined)[]): Promise<void>;
   animateShowText(calculatedPoints: number, text: string): Promise<void>;

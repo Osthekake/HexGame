@@ -5,11 +5,9 @@ import { GameTimer } from "../timer";
 import {
     Camera, Color, Material, Mesh, MeshPhongMaterial,
     PerspectiveCamera, PointLight, Scene, WebGLRenderer, TorusGeometry,
-    AmbientLight, DirectionalLight, Vector3, BufferGeometry, Raycaster, Vector2, Plane
+    AmbientLight, DirectionalLight, Vector3, BufferGeometry, Raycaster, Vector2, Plane,
+    CanvasTexture, SpriteMaterial, Sprite
 } from 'three'
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js'
-import type { Font } from 'three/examples/jsm/loaders/FontLoader.js'
 import * as TWEEN from '@tweenjs/tween.js'
 import { Group } from '@tweenjs/tween.js'
 import { tweenPromise } from './tween-promise'
@@ -35,8 +33,7 @@ export class ThreeJsRenderer implements HexRenderer {
 
     private config: GameConfig
     private timer: GameTimer
-    private font: Font | null = null
-    private textMeshes: Mesh[] = []
+    private textSprites: Sprite[] = []
     private animatingHexes: Set<number> = new Set()
     private cursorTweenGroup: Group = new Group()
 
@@ -94,18 +91,6 @@ export class ThreeJsRenderer implements HexRenderer {
 
         // Add cursor light and attach it to the torus
         this.scene.add(this.cursorLight)
-
-        // Load font for text rendering
-        /*const loader = new FontLoader()
-        try{
-            loader.load('/fonts/helvetiker_regular.typeface.json', (font) => {
-                this.font = font
-            }, undefined, (err) => {
-                console.warn('Font loading failed, text rendering will be disabled:', err)
-            })
-        } catch(_) {
-            console.warn('Font loading failed')
-        }*/
     }
     reset(): void {
         // Clear all hex meshes from the scene
@@ -155,45 +140,69 @@ export class ThreeJsRenderer implements HexRenderer {
     async animateShowText(calculatedPoints: number, text: string): Promise<void> {
         this.timer.hold(this.config.animation.textAnimationTime)
 
-        if (!this.font) {
-            console.warn('Font not loaded, skipping text animation')
-            return
-        }
-
-        // TODO: Implement gradient color for text - currently using simple fill color
-        const textColor = 0xff00ff // Magenta as a placeholder
-
         const duration = this.config.animation.textAnimationTime
-        const startSize = 5 / 20
-        const endSize = (5 + calculatedPoints * 5) / 20
+        const startSize = 5
+        const endSize = 5 + calculatedPoints * 5
 
-        // Create text mesh
-        const geometry = new TextGeometry(String(calculatedPoints), {
-            font: this.font,
-            size: startSize,
-            depth: 0.1,
-        })
-        const material = new MeshPhongMaterial({ color: textColor, emissive: textColor })
-        const textMesh = new Mesh(geometry, material)
+        // Create off-screen canvas for text (transparent background by default)
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 256
+        const ctx = canvas.getContext('2d')!
+
+        // Create sprite with canvas texture
+        const texture = new CanvasTexture(canvas)
+        const material = new SpriteMaterial({ map: texture, transparent: true })
+        const sprite = new Sprite(material)
 
         const centerPos = this.gridToPosition(3.5, 3.5)
-        textMesh.position.set(centerPos.x - 0.5, centerPos.y - 0.3, -9)
-        textMesh.rotation.x = Math.PI / 2
+        sprite.position.set(centerPos.x, centerPos.y, -9)
 
-        this.scene.add(textMesh)
-        this.textMeshes.push(textMesh)
+        this.scene.add(sprite)
+        this.textSprites.push(sprite)
 
-        // Animate scale to simulate size growth
-        const scaleRatio = endSize / startSize
-        const tween = new TWEEN.Tween(textMesh.scale)
-            .to({ x: scaleRatio, y: scaleRatio, z: scaleRatio }, duration)
-            .easing(TWEEN.Easing.Quadratic.Out)
+        // Animate using requestAnimationFrame (matching Canvas2D approach)
+        const startTime = Date.now()
 
-        await tweenPromise(this, duration, [tween])
+        await new Promise<void>((resolve) => {
+            const tick = () => {
+                const elapsed = Date.now() - startTime
+                const fraction = Math.min(elapsed / duration, 1)
 
-        // Clean up text meshes
-        this.textMeshes.forEach(mesh => this.scene.remove(mesh))
-        this.textMeshes = []
+                // Calculate current font size
+                const fontSize = Math.round(startSize + fraction * calculatedPoints * 5)
+
+                // Clear and redraw text
+                ctx.clearRect(0, 0, canvas.width, canvas.height)
+                ctx.font = `${fontSize * 2}px Verdana`
+                ctx.fillStyle = 'magenta'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillText(String(calculatedPoints), canvas.width / 2, canvas.height / 2)
+
+                // Update texture
+                texture.needsUpdate = true
+
+                // Scale sprite based on font size
+                const scale = fontSize / 20
+                sprite.scale.set(scale * 2, scale * 2, 1)
+
+                this.render()
+
+                if (elapsed < duration) {
+                    requestAnimationFrame(tick)
+                } else {
+                    resolve()
+                }
+            }
+            requestAnimationFrame(tick)
+        })
+
+        // Clean up
+        this.scene.remove(sprite)
+        this.textSprites = this.textSprites.filter(s => s !== sprite)
+        material.dispose()
+        texture.dispose()
     }
 
     async animateRotate(clockwise: boolean, cursor: Coordinate, hexes: (Hex | undefined)[]): Promise<void> {
@@ -353,35 +362,6 @@ export class ThreeJsRenderer implements HexRenderer {
             }
         }
         requestAnimationFrame(tick)
-    }
-
-    drawText(text: string, centerGridX: number, centerGridY: number, fontSize: number, fillStyle: string | CanvasGradient): void {
-        // Clear previous text meshes
-        this.textMeshes.forEach(mesh => this.scene.remove(mesh))
-        this.textMeshes = []
-
-        if (!this.font) {
-            console.warn('Font not loaded yet, cannot draw text')
-            return
-        }
-
-        const geometry = new TextGeometry(text, {
-            font: this.font,
-            size: fontSize / 20,
-            depth: 0.1,
-        })
-
-        // Use magenta as default color if fillStyle is a gradient (not supported yet)
-        const color = typeof fillStyle === 'string' ? fillStyle : 0xff00ff
-        const material = new MeshPhongMaterial({ color, emissive: color })
-        const mesh = new Mesh(geometry, material)
-
-        const pos = this.gridToPosition(centerGridX, centerGridY)
-        mesh.position.set(pos.x - 0.5, pos.y - 0.3, -9)
-        mesh.rotation.x = Math.PI / 2
-
-        this.scene.add(mesh)
-        this.textMeshes.push(mesh)
     }
 
     getColorForHex(hexValue: number): string {
