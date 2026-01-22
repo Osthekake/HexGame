@@ -173,6 +173,15 @@ body.renderer-canvas2d {
     padding: 1.5em 2em;
 }
 
+.game-over-text {
+    font-family: var(--text-font-family);
+    font-size: 3em;
+    font-weight: var(--text-font-weight-bold);
+    color: var(--text-color);
+    margin: 0;
+    display: none;
+}
+
 .settings-container {
     position: fixed;
     top: 2em;

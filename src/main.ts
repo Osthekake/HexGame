@@ -41,6 +41,11 @@ if (!restartButton) {
   throw new Error("Restart button not found");
 }
 
+const gameOverText = document.getElementById("game-over-text") as HTMLElement;
+if (!gameOverText) {
+  throw new Error("Game over text not found");
+}
+
 // Game state
 let renderer: HexRenderer;
 let grid: Grid;
@@ -60,16 +65,19 @@ const wakeLock = new WakeLockManager();
 // Overlay visibility control
 function showGameOverUI(): void {
   instructionText.style.display = 'none';
+  gameOverText.style.display = 'block';
   restartButton.style.display = 'block';
 }
 
 function showStartUI(): void {
   instructionText.style.display = 'block';
+  gameOverText.style.display = 'none';
   restartButton.style.display = 'none';
 }
 
 function hideOverlay(): void {
   instructionText.style.display = 'none';
+  gameOverText.style.display = 'none';
   restartButton.style.display = 'none';
 }
 
