@@ -48,19 +48,15 @@ The container serves the app at the `/HexGame/` path prefix, matching the produc
 
 ## Deployment
 
+This app is deployed as part of [Osthekake.com](https://github.com/Osthekake/Osthekake.com), which manages the reverse proxy and infrastructure for all apps on the site. The HexGame container runs behind the root proxy at `osthekake.com/HexGame/`.
+
 On push to `master`, GitHub Actions builds a Docker image and pushes it to GitHub Container Registry:
 
 ```
 ghcr.io/osthekake/hexgame:latest
 ```
 
-The image is designed to run behind a reverse proxy (Caddy) that routes `/HexGame/*` to this container **without stripping** the prefix. The container handles the path prefix internally via Nginx.
-
-### Reverse Proxy Requirements
-
-The reverse proxy must:
-- Route `/HexGame/*` to this container's port 80 without stripping the prefix
-- Forward standard proxy headers (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`)
+To update in production, pull the new image on the server (see the Osthekake.com repo for instructions).
 
 ## Project Structure
 
