@@ -1,10 +1,17 @@
 # Hex Game
 
-A hex-based puzzle game built with TypeScript and Vite.
+A hex-based puzzle game built with TypeScript, Three.js, and Vite.
 
-## Getting Started
+## How to Play
 
-### Development
+- Use **arrow keys** to move the cursor
+- Press **A** to rotate counter-clockwise
+- Press **D** to rotate clockwise
+- Match 3 or more hexes of the same color to score points
+- The timer starts when you first rotate
+- Build combos and chains for higher scores!
+
+## Development
 
 Install dependencies:
 ```bash
@@ -18,8 +25,6 @@ npm run dev
 
 Open your browser to [http://localhost:5173](http://localhost:5173)
 
-### Build
-
 Build for production:
 ```bash
 npm run build
@@ -30,14 +35,32 @@ Preview the production build:
 npm run preview
 ```
 
-## How to Play
+## Docker
 
-- Use **arrow keys** to move the cursor
-- Press **A** to rotate counter-clockwise
-- Press **D** to rotate clockwise
-- Match 3 or more hexes of the same color to score points
-- The timer starts when you first rotate
-- Build combos and chains for higher scores!
+Build and run locally:
+```bash
+docker-compose build && docker-compose up
+```
+
+Open [http://localhost/HexGame/](http://localhost/HexGame/)
+
+The container serves the app at the `/HexGame/` path prefix, matching the production URL structure.
+
+## Deployment
+
+On push to `master`, GitHub Actions builds a Docker image and pushes it to GitHub Container Registry:
+
+```
+ghcr.io/osthekake/hexgame:latest
+```
+
+The image is designed to run behind a reverse proxy (Caddy) that routes `/HexGame/*` to this container **without stripping** the prefix. The container handles the path prefix internally via Nginx.
+
+### Reverse Proxy Requirements
+
+The reverse proxy must:
+- Route `/HexGame/*` to this container's port 80 without stripping the prefix
+- Forward standard proxy headers (`Host`, `X-Real-IP`, `X-Forwarded-For`, `X-Forwarded-Proto`)
 
 ## Project Structure
 
@@ -47,34 +70,13 @@ HexGame/
 │   ├── main.ts          # Entry point
 │   ├── grid.ts          # Game grid and logic
 │   ├── timer.ts         # Timer and game mechanics
-│   ├── animation.ts     # Animation system
 │   ├── keyboard.ts      # Keyboard controls
 │   └── highscore.ts     # High score tracking
+├── docker/
+│   └── nginx.conf       # Nginx config for Docker image
+├── Dockerfile           # Multi-stage Docker build
+├── docker-compose.yml   # Local Docker testing
 ├── index.html           # HTML template
 ├── package.json         # Project dependencies
 └── tsconfig.json        # TypeScript configuration
 ```
-
-## Modernization Changes
-
-This project has been modernized from the original version with:
-
-- **TypeScript** - Full type safety and better developer experience
-- **Vite** - Fast development server and optimized builds
-- **ES Modules** - Modern import/export syntax
-- **npm** - Package management and scripts
-- **Class-based architecture** - Proper OOP with dependency injection, no singletons
-- **Promises & async/await** - Modern asynchronous programming, no callbacks
-- **Utility functions** - Pure functions extracted into separate utils module
-
-### Original Files
-
-The original JavaScript files are preserved in the root directory:
-- `main.html` (original)
-- `Grid.js` (original)
-- `Timer.js` (original)
-- `animation.js` (original)
-- `Keyboard.js` (original)
-- `highscore.js` (original)
-
-The modernized TypeScript versions are in the `src/` directory.
