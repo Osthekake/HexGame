@@ -5,6 +5,7 @@ import { config, createRenderer, createInputHandler, saveRenderer, saveInput, up
 import { SettingsMenu } from './settings';
 import { WakeLockManager } from './wakelock';
 import { ThreeJsRenderer } from './threejs/threejs-renderer';
+import { trackSettingsRenderer, trackSettingsInput, trackGameStart, trackGameOver } from './tracking';
 import type { RendererType, InputType } from './config';
 import type { HexRenderer } from './renderer';
 import type { InputHandler } from './input';
@@ -203,12 +204,14 @@ function initializeGame(rendererType: RendererType): void {
     isGameOver = false;
     hideOverlay();
     wakeLock.request();
+    trackGameStart();
   };
 
   grid.onGameOver = () => {
     isGameOver = true;
     showGameOverUI();
     wakeLock.release();
+    trackGameOver(grid.points);
   };
 
   // Initialize the game
@@ -220,6 +223,7 @@ function initializeGame(rendererType: RendererType): void {
 
 // Function to switch renderer
 export function switchRenderer(newRenderer: RendererType): void {
+  trackSettingsRenderer(newRenderer);
   saveRenderer(newRenderer);
   config.renderer = newRenderer;
   isGameOver = false;
@@ -228,6 +232,7 @@ export function switchRenderer(newRenderer: RendererType): void {
 
 // Function to switch input
 export function switchInput(newInput: InputType): void {
+  trackSettingsInput(newInput);
   saveInput(newInput);
   config.input = newInput;
 

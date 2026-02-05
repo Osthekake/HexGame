@@ -1,4 +1,4 @@
-import Hammer from 'hammerjs';
+import * as Hammer from 'hammerjs';
 import type { HexRenderer } from './renderer';
 import type { Grid } from './grid';
 
