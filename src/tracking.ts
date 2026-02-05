@@ -10,8 +10,10 @@ declare global {
   }
 }
 
+const PREFIX = 'HexGame';
+
 function track(event: string, data?: Record<string, string | number>): void {
-  window.umami?.track(event, data);
+  window.umami?.track(`${PREFIX}-${event}`, data);
 }
 
 export function trackSettingsRenderer(renderer: RendererType): void {
