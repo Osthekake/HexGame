@@ -1,14 +1,14 @@
-# Step 1: Backend Server, Database, API, Docker
+# Step 2: Backend Server, Database, API, Docker
 
-**Execute this step SECOND** (after Step 3, before Step 2).
+**Execute this step SECOND** (after Step 1, before Step 3).
 
 ## Context
 
 HexGame is a hex-matching puzzle game that currently runs as a pure frontend app (Vite + TypeScript). Step 3 extracted the game logic into a shared module (`src/shared/`) that runs in both browser and Node.js. This step creates a backend server that uses that shared module to validate scores, store highscores, manage game sessions, and serve everything in Docker.
 
-## What This Step Depends On (from Step 3)
+## What This Step Depends On (from Step 1)
 
-Step 3 must be completed first. It provides:
+Step 1 must be completed first. It provides:
 
 - **`src/shared/game-engine.ts`**: `GameEngine` class - pure synchronous game engine
 - **`src/shared/replay.ts`**: `replayGame(config, seed, actions, claimedScore)` → `{ valid, calculatedScore, reason? }`
@@ -19,9 +19,9 @@ Step 3 must be completed first. It provides:
 
 The backend imports `replayGame` from the shared module to validate submitted scores.
 
-## What This Step Produces (for Step 2)
+## What This Step Produces (for Step 3)
 
-- **API endpoints** that the frontend (Step 2) calls:
+- **API endpoints** that the frontend (Step 3) calls:
   - `POST /api/sessions` → creates game session, returns seed + detected country
   - `GET /api/scores` → fetches leaderboard (top 10 + around-player context)
   - `POST /api/scores` → validates and stores a score

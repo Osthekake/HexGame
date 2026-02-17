@@ -1,6 +1,6 @@
-# Step 3: Shared Game Logic, Seeded RNG, and Action Recording/Replay
+# Step 1: Shared Game Logic, Seeded RNG, and Action Recording/Replay
 
-**Execute this step FIRST** (before Step 1 and Step 2).
+**Execute this step FIRST** (before Step 2 and Step 3).
 
 ## Context
 
@@ -14,7 +14,7 @@ This step also introduces a seeded pseudo-random number generator (replacing `Ma
 - **`src/shared/replay.ts`**: `replayGame()` function that the backend (Step 1) calls to validate submitted scores
 - **`src/shared/types.ts`**: Shared types (`GameAction`, `ActionType`, `CascadeResult`, etc.) used by all three steps
 - **`src/shared/rng.ts`**: `SeededRNG` class used by `GameEngine`
-- **Modified `src/grid.ts`**: Now accepts a `seed` parameter, records player actions, and exposes `getActions()` / `getScore()` for Step 2 to use when uploading scores
+- **Modified `src/grid.ts`**: Now accepts a `seed` parameter, records player actions, and exposes `getActions()` / `getScore()` for Step 3 to use when uploading scores
 
 ## What This Step Depends On
 
@@ -196,7 +196,7 @@ readonly animation: {
 ### Other Relevant Files
 - `src/renderer.ts`: `HexRenderer` interface with `animateVanish()`, `animateRotate()`, `animateShiftLeft()`, `animateShowText()`, `setHexPosition()`, `setCursorPosition()`, `render()`, `reset()`
 - `src/input.ts`: `Controllable` interface with `moveLeft/Right/Up/Down()`, `rotateClockwise/CounterClockwise()`
-- `src/highscore.ts`: Current localStorage-only highscore (will be removed in Step 2)
+- `src/highscore.ts`: Current localStorage-only highscore (will be removed in Step 3)
 
 ---
 

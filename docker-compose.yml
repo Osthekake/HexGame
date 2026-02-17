@@ -3,3 +3,8 @@ services:
     build: .
     ports:
       - "80:80"
+    volumes:
+      - hexgame-data:/app/data
+
+volumes:
+  hexgame-data:

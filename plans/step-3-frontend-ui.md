@@ -1,20 +1,20 @@
-# Step 2: Frontend UI for Highscores
+# Step 3: Frontend UI for Highscores
 
-**Execute this step LAST** (after Step 3 and Step 1).
+**Execute this step LAST** (after Step 1 and Step 2).
 
 ## Context
 
-HexGame is a hex-matching puzzle game built with vanilla TypeScript + Vite (no React/Vue). Step 3 refactored the game logic into a shared module with seeded RNG and action recording. Step 1 created a backend server with session management, score validation, and leaderboard API. This step builds the frontend UI to tie everything together: viewing highscores, entering nicknames, and uploading validated scores.
+HexGame is a hex-matching puzzle game built with vanilla TypeScript + Vite (no React/Vue). Step 1 refactored the game logic into a shared module with seeded RNG and action recording. Step 2 created a backend server with session management, score validation, and leaderboard API. This step builds the frontend UI to tie everything together: viewing highscores, entering nicknames, and uploading validated scores.
 
 ## What This Step Depends On
 
-### From Step 3 (shared game logic)
+### From Step 1 (shared game logic)
 - `src/grid.ts` now accepts a `seed` parameter in its constructor
 - `src/grid.ts` has `getActions(): GameAction[]` to retrieve recorded player actions
 - `src/grid.ts` has `getScore(): number` to retrieve the current score
 - `src/shared/types.ts` exports `GameAction` type
 
-### From Step 1 (backend)
+### From Step 2 (backend)
 The backend runs on port 3001 (dev) or behind nginx (Docker) and provides:
 
 **POST /api/sessions** → `{ sessionId: string, seed: number, country: string }`
@@ -31,7 +31,7 @@ The backend runs on port 3001 (dev) or behind nginx (Docker) and provides:
 - Country auto-detected server-side (not sent by client)
 - HTTP 400 if validation fails, HTTP 409 if session already used
 
-**Vite dev proxy** (from Step 1): `/HexGame/api` → `http://localhost:3001/api`
+**Vite dev proxy** (from Step 2): `/HexGame/api` → `http://localhost:3001/api`
 
 ---
 
@@ -60,7 +60,7 @@ Key DOM manipulation functions:
 - `showStartUI()`: shows instruction, hides game-over elements
 - `hideOverlay()`: hides all overlay text
 
-### `src/grid.ts` (after Step 3)
+### `src/grid.ts` (after Step 1)
 - Constructor now takes `seed: number` parameter
 - Has `getActions(): GameAction[]` and `getScore(): number`
 - Everything else about the Grid API is unchanged
@@ -413,7 +413,7 @@ import type { GameAction } from './shared/types';
 - Remove `import { HighScore } from './highscore'`
 - Remove `const highScore = new HighScore(config.highscoreEnabled);`
 - Remove any references to `highScore` (passed to Grid constructor, clear button handler)
-- The Grid constructor in Step 3 should have made the HighScore parameter optional or removed it
+- The Grid constructor in Step 1 should have made the HighScore parameter optional or removed it
 
 **C. Add session state:**
 ```typescript
@@ -449,7 +449,7 @@ async function startNewSession(): Promise<void> {
   ```typescript
   grid = new Grid(renderer, pointsElement, timer, config, currentSeed);
   ```
-  Note: The Grid constructor signature changed in Step 3 to accept `seed` and no longer needs `highScore`.
+  Note: The Grid constructor signature changed in Step 1 to accept `seed` and no longer needs `highScore`.
 
 **E. Modify game start callback:**
 ```typescript
@@ -531,7 +531,7 @@ Or if you want the game to appear immediately (even before the session is ready)
 
 Delete this file entirely. It's replaced by the server-based system.
 
-Also update any imports in `src/grid.ts` that reference the old `HighScore` class. Step 3 may have already removed this dependency, but verify.
+Also update any imports in `src/grid.ts` that reference the old `HighScore` class. Step 1 may have already removed this dependency, but verify.
 
 ### 8. Update `src/config.ts`
 
