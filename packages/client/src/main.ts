@@ -1,6 +1,7 @@
 import { Grid } from './grid';
 import { Timer, Bar } from './timer';
-import { HighScore } from './highscore';
+import { createSession } from './api-client';
+import { HighscoreUI } from './highscore-ui';
 import { config, createRenderer, createInputHandler, saveRenderer, saveInput, updateConfigStyles } from './config';
 import { SettingsMenu } from './settings';
 import { WakeLockManager } from './wakelock';
@@ -55,13 +56,33 @@ let resizeHandler: () => void;
 let canvas: HTMLCanvasElement;
 let isGameOver = false;
 
+// Session state
+let currentSessionId = '';
+let currentSeed = 0;
+let isOnline = false;
+
 // Persistent instances
 const bar = new Bar(timeElement);
 bar.render(100);
 
 const timer = new Timer(bar, config.timer.maxTime, config.timer.increment);
-const highScore = new HighScore(config.highscoreEnabled);
 const wakeLock = new WakeLockManager();
+const highscoreUI = new HighscoreUI();
+
+async function startNewSession(): Promise<void> {
+  try {
+    const session = await createSession();
+    currentSessionId = session.sessionId;
+    currentSeed = session.seed;
+    highscoreUI.setPlayerCountry(session.country);
+    isOnline = true;
+  } catch {
+    currentSeed = Math.floor(Math.random() * 0xFFFFFFFF);
+    currentSessionId = '';
+    isOnline = false;
+    console.warn('Backend unavailable, playing in offline mode');
+  }
+}
 
 // Overlay visibility control
 function showGameOverUI(): void {
@@ -97,6 +118,64 @@ function createCanvas(): HTMLCanvasElement {
   canvasContainer.appendChild(newCanvas);
 
   return newCanvas;
+}
+
+// Set up grid callbacks and input handler for the current grid
+function setupGridBindings(): void {
+  grid.onGameStart = () => {
+    isGameOver = false;
+    hideOverlay();
+    wakeLock.request();
+    trackGameStart();
+  };
+
+  grid.onGameOver = () => {
+    isGameOver = true;
+    showGameOverUI();
+    wakeLock.release();
+    trackGameOver(grid.getScore());
+
+    // Show upload prompt if score > 100 and we have a valid session
+    if (grid.getScore() > 100 && isOnline && currentSessionId) {
+      highscoreUI.showUploadPrompt(
+        grid.getScore(),
+        grid.getActions(),
+        currentSessionId
+      );
+    }
+
+    // Pre-fetch a new session for the next game
+    startNewSession();
+  };
+
+  // Re-attach input handler to the new grid
+  if (inputHandler) {
+    inputHandler.detach();
+  }
+  inputHandler = createInputHandler(config.input);
+  inputHandler.attach(grid, renderer, grid);
+
+  // Set restart callback for gamepad input
+  if ('setRestartCallback' in inputHandler) {
+    (inputHandler as any).setRestartCallback(() => restartGame());
+  }
+}
+
+function restartGame(): void {
+  if (!isGameOver) return;
+  isGameOver = false;
+  timer.reset();
+
+  grid = new Grid(
+    renderer,
+    pointsElement,
+    timer,
+    config,
+    currentSeed || undefined
+  );
+  setupGridBindings();
+  grid.init();
+  showStartUI();
 }
 
 // Initialize the game with a specific renderer
@@ -174,45 +253,16 @@ function initializeGame(rendererType: RendererType): void {
   };
   window.addEventListener('resize', resizeHandler);
 
-  // Create Grid (Animation is created internally)
+  // Create Grid with session seed
   grid = new Grid(
     renderer,
     pointsElement,
     timer,
-    highScore,
-    config
+    config,
+    currentSeed || undefined
   );
 
-  // Initialize input controls based on config
-  inputHandler = createInputHandler(config.input);
-  inputHandler.attach(grid, renderer, grid);
-
-  // Set restart callback for gamepad input
-  if ('setRestartCallback' in inputHandler) {
-    (inputHandler as any).setRestartCallback(() => {
-      if (isGameOver) {
-        isGameOver = false;
-        timer.reset();
-        grid.init();
-        showStartUI();
-      }
-    });
-  }
-
-  // Set up game state callbacks
-  grid.onGameStart = () => {
-    isGameOver = false;
-    hideOverlay();
-    wakeLock.request();
-    trackGameStart();
-  };
-
-  grid.onGameOver = () => {
-    isGameOver = true;
-    showGameOverUI();
-    wakeLock.release();
-    trackGameOver(grid.points);
-  };
+  setupGridBindings();
 
   // Initialize the game
   grid.init();
@@ -247,14 +297,7 @@ export function switchInput(newInput: InputType): void {
 
   // Set restart callback for gamepad input
   if ('setRestartCallback' in inputHandler) {
-    (inputHandler as any).setRestartCallback(() => {
-      if (isGameOver) {
-        isGameOver = false;
-        timer.reset();
-        grid.init();
-        showStartUI();
-      }
-    });
+    (inputHandler as any).setRestartCallback(() => restartGame());
   }
 
   // Update instruction text
@@ -272,26 +315,20 @@ function updateInstructionText(input: InputType): void {
   instructionText.textContent = instructionTexts[input];
 }
 
-// Initialize with current renderer
-initializeGame(config.renderer);
-
-// Set initial instruction text
-updateInstructionText(config.input);
-
-// Set up event listeners
-restartButton.addEventListener('click', () => {
-  if (isGameOver) {
-    isGameOver = false;
-    timer.reset();
-    grid.init();
-    showStartUI();
-  }
+// Fetch session then initialize game
+startNewSession().then(() => {
+  initializeGame(config.renderer);
+  updateInstructionText(config.input);
 });
 
-const clearHighscoreButton = document.getElementById("clear-highscore");
-if (clearHighscoreButton) {
-  clearHighscoreButton.addEventListener('click', () => {
-    highScore.clear();
+// Set up event listeners
+restartButton.addEventListener('click', () => restartGame());
+
+// Trophy button - open highscore board
+const highscoreButton = document.getElementById('highscore-button');
+if (highscoreButton) {
+  highscoreButton.addEventListener('click', () => {
+    highscoreUI.showBoard();
   });
 }
 

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import geoip from 'geoip-lite';
 import type { Queries } from '../db/queries.js';
 import { validateScore } from '../validation.js';
-import type { ActionType } from '../../../src/shared/types.js';
+import type { ActionType } from '@hexgame/shared';
 
 const VALID_ACTION_TYPES: ActionType[] = [
   'moveLeft', 'moveRight', 'moveUp', 'moveDown',

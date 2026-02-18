@@ -35,7 +35,6 @@ export interface GameConfig {
     vanishAnimationTime: number,
     textAnimationTime: number
   }
-  readonly highscoreEnabled: boolean;
   cursorColor: string;
   cursorGlowColor: string;
   backgroundColor: string;
@@ -99,8 +98,7 @@ export const config: GameConfig = {
   colors: [], // Will be loaded after body class is set
   cursorColor: '', // Will be loaded after body class is set
   cursorGlowColor: '', // Will be loaded after body class is set
-  backgroundColor: '', // Will be loaded after body class is set
-  highscoreEnabled: false
+  backgroundColor: '' // Will be loaded after body class is set
 };
 
 // Update config colors and styles after body class is set

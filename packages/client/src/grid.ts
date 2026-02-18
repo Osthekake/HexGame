@@ -1,12 +1,11 @@
 import type { GameTimer } from './timer';
-import type { HighScore } from './highscore';
 import type { HexRenderer } from './renderer';
 import type { Controllable } from './input';
 import { GameConfig } from './config';
-import { GameEngine } from './shared/game-engine';
-import type { Coordinate, Hex, GameAction, EngineConfig } from './shared/types';
+import { GameEngine } from '@hexgame/shared';
+import type { Coordinate, Hex, GameAction, EngineConfig } from '@hexgame/shared';
 
-export type { Coordinate, Hex } from './shared/types';
+export type { Coordinate, Hex } from '@hexgame/shared';
 
 export class Grid implements Controllable {
   shouldDraw: boolean[][] = [];
@@ -15,7 +14,6 @@ export class Grid implements Controllable {
 
   private engine: GameEngine;
   private timer: GameTimer;
-  private highScore: HighScore;
   private renderer: HexRenderer;
   private actions: GameAction[] = [];
   private gameStartTime: number = 0;
@@ -29,14 +27,12 @@ export class Grid implements Controllable {
     renderer: HexRenderer,
     pointsHTML: HTMLElement,
     timer: GameTimer,
-    highScore: HighScore,
     config: GameConfig,
     seed?: number
   ) {
     this.renderer = renderer;
     this.pointsHTML = pointsHTML;
     this.timer = timer;
-    this.highScore = highScore;
     this.seed = seed ?? Math.floor(Math.random() * 2147483647);
 
     const engineConfig: EngineConfig = {
@@ -82,7 +78,6 @@ export class Grid implements Controllable {
 
   private gameOver(): void {
     this.locks += 1;
-    this.highScore.enter(this.points);
     if (this.onGameOver) {
       this.onGameOver();
     }

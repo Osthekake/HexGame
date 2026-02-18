@@ -1,5 +1,5 @@
-import { replayGame } from '../../src/shared/replay.js';
-import type { GameAction, EngineConfig } from '../../src/shared/types.js';
+import { replayGame } from '@hexgame/shared';
+import type { GameAction, EngineConfig } from '@hexgame/shared';
 
 const GAME_CONFIG: EngineConfig = {
   gridWidth: 7,

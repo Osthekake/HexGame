@@ -1,38 +1,12 @@
 {
   "name": "hexgame",
-  "version": "1.0.0",
-  "description": "A hex-based puzzle game",
+  "private": true,
   "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "vitest run"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Osthekake/HexGame.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Osthekake/HexGame/issues"
-  },
-  "homepage": "https://github.com/Osthekake/HexGame#readme",
-  "devDependencies": {
-    "@types/hammerjs": "^2.0.46",
-    "@types/node": "^25.0.3",
-    "@types/seedrandom": "^3.0.8",
-    "@types/three": "^0.182.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.18"
-  },
-  "dependencies": {
-    "@tweenjs/tween.js": "^25.0.0",
-    "hammerjs": "^2.0.8",
-    "seedrandom": "^3.0.5",
-    "three": "^0.182.0"
+    "dev:client": "npm run dev -w @hexgame/client",
+    "dev:server": "npm run dev -w @hexgame/server",
+    "build": "npm run build -w @hexgame/client && npm run build -w @hexgame/server",
+    "test": "npm test -w @hexgame/shared"
   }
 }

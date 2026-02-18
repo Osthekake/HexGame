@@ -20,6 +20,8 @@
   </div>
 
 
+  <button class="button highscore-button" id="highscore-button">&#127942;</button>
+
   <div class="settings-container">
     <button class="button settings-button" id="settings-button">⚙</button>
     <div class="settings-menu" id="settings-menu">
@@ -38,6 +40,37 @@
     <h3 class="instruction-text">Use arrows to move. a, d to rotate. Rotate to begin timer.</h3>
     <h2 class="game-over-text" id="game-over-text">Game Over</h2>
     <button class="button" id="restart-button">Restart</button>
+  </div>
+
+  <div class="highscore-overlay" id="highscore-overlay" style="display: none;">
+    <div class="highscore-panel">
+      <button class="highscore-close-btn" id="close-highscore-btn">&times;</button>
+
+      <!-- Upload Prompt View -->
+      <div id="upload-prompt" style="display: none;">
+        <h2 class="highscore-title">New Score!</h2>
+        <p class="highscore-score-display">Score: <span id="upload-score-display"></span></p>
+        <div class="highscore-form-group">
+          <label for="nickname-input">Nickname</label>
+          <input type="text" id="nickname-input" maxlength="20" placeholder="Enter nickname" autocomplete="off" />
+        </div>
+        <div class="highscore-form-actions">
+          <button class="button" id="upload-score-btn">Upload Score</button>
+          <button class="button highscore-secondary-btn" id="skip-upload-btn">Skip</button>
+        </div>
+        <p id="upload-status" class="highscore-status"></p>
+      </div>
+
+      <!-- Highscore Board View -->
+      <div id="highscore-board" style="display: none;">
+        <div class="highscore-tabs">
+          <button class="highscore-tab active" id="tab-alltime">All Time</button>
+          <button class="highscore-tab" id="tab-today">Today</button>
+          <button class="highscore-tab" id="tab-region">My Region</button>
+        </div>
+        <div id="highscore-list"></div>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="/src/main.ts"></script>
