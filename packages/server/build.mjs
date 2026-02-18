@@ -6,7 +6,7 @@ await esbuild.build({
   platform: 'node',
   target: 'node20',
   format: 'cjs',
-  outfile: 'dist/index.js',
+  outfile: 'dist/index.cjs',
   // Native addons and packages with binary data cannot be bundled
   external: ['better-sqlite3', 'geoip-lite'],
 });
