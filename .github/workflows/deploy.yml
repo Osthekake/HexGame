@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Images
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -16,6 +15,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - image: hexgame-client
+            dockerfile: packages/client/Dockerfile
+          - image: hexgame-server
+            dockerfile: packages/server/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
@@ -33,18 +39,19 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push image
+      - name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
