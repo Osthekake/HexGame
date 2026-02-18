@@ -24,6 +24,7 @@ export function initDB(dbPath: string = './data/hexgame.db'): Database.Database 
       nickname TEXT NOT NULL,
       country TEXT NOT NULL DEFAULT '',
       score INTEGER NOT NULL,
+      seed INTEGER NOT NULL,
       actions TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );

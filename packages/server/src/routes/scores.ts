@@ -138,7 +138,7 @@ export function scoreRoutes(queries: Queries): Router {
 
     // Atomically mark session used + insert score
     queries.markSessionUsedAndInsertScore(
-      sessionId, trimmed, country, score, JSON.stringify(actions)
+      sessionId, trimmed, country, score, session.seed, JSON.stringify(actions)
     );
 
     // Compute rank

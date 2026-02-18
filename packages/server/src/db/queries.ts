@@ -14,6 +14,7 @@ export interface ScoreRow {
   nickname: string;
   country: string;
   score: number;
+  seed: number;
   actions: string;
   created_at: string;
 }
@@ -34,7 +35,7 @@ export function createQueries(db: Database.Database) {
       'UPDATE sessions SET used = 1 WHERE id = ?'
     ),
     insertScore: db.prepare(
-      'INSERT INTO scores (session_id, nickname, country, score, actions) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO scores (session_id, nickname, country, score, seed, actions) VALUES (?, ?, ?, ?, ?, ?)'
     ),
   };
 
@@ -51,8 +52,8 @@ export function createQueries(db: Database.Database) {
       stmts.markSessionUsed.run(id);
     },
 
-    insertScore(sessionId: string, nickname: string, country: string, score: number, actions: string) {
-      stmts.insertScore.run(sessionId, nickname, country, score, actions);
+    insertScore(sessionId: string, nickname: string, country: string, score: number, seed: number, actions: string) {
+      stmts.insertScore.run(sessionId, nickname, country, score, seed, actions);
     },
 
     getTopScores(limit: number, whereClause: string = '', params: unknown[] = []): RankedScoreRow[] {
@@ -86,10 +87,10 @@ export function createQueries(db: Database.Database) {
       return db.prepare(sql).all(...params, limit, offset) as RankedScoreRow[];
     },
 
-    markSessionUsedAndInsertScore(sessionId: string, nickname: string, country: string, score: number, actions: string) {
+    markSessionUsedAndInsertScore(sessionId: string, nickname: string, country: string, score: number, seed: number, actions: string) {
       const tx = db.transaction(() => {
         stmts.markSessionUsed.run(sessionId);
-        stmts.insertScore.run(sessionId, nickname, country, score, actions);
+        stmts.insertScore.run(sessionId, nickname, country, score, seed, actions);
       });
       tx();
     },
