@@ -15,9 +15,6 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - hexgame-data:/data
+      - ./data:/data
     environment:
       - DB_PATH=/data/hexgame.db
-
-volumes:
-  hexgame-data:

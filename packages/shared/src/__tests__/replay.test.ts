@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { replayGame } from '../replay';
 import { GameEngine } from '../game-engine';
 import type { EngineConfig, GameAction } from '../types';
+import { actions } from './fixtures/live-game-3540';
 
 const defaultConfig: EngineConfig = {
   gridWidth: 7,
@@ -102,6 +103,25 @@ describe('replayGame', () => {
     const result = replayGame(defaultConfig, 12345, actions, 0);
     expect(result.valid).toBe(true);
     expect(result.calculatedScore).toBe(0);
+  });
+
+  it('validates live score of 3540 with recorded seed and actions', () => {
+    const seed = 3205150561;
+    const score = 3540;
+    
+    const result = replayGame(defaultConfig, seed, actions, score);
+    expect(result.valid).toBe(true);
+    expect(result.calculatedScore).toBe(score);
+  });
+
+  it('rejects live score of 3540 with a different seed', () => {
+    const seed = 3205150561;
+    const wrongSeed = seed + 1;
+    const score = 3540;
+ 
+    const result = replayGame(defaultConfig, wrongSeed, actions, score);
+    expect(result.valid).toBe(false);
+    expect(result.calculatedScore).toBe(4);
   });
 
   it('replay is deterministic across multiple runs', () => {
