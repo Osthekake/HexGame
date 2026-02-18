@@ -89,6 +89,11 @@ export class GameEngine {
       this.cursor.y = this.config.gridHeight - 2;
   }
 
+  moveCursor(x: number, y: number): void {
+    this.cursor.x = Math.max(1, Math.min(x, this.config.gridWidth - 2));
+    this.cursor.y = Math.max(1, Math.min(y, this.config.gridHeight - 2));
+  }
+
   /**
    * Find all 3-in-a-row matches and update the chain.
    * Returns matched coordinates and combo count.

@@ -1,4 +1,4 @@
-import * as Hammer from 'hammerjs';
+import Hammer from 'hammerjs';
 import type { HexRenderer } from './renderer';
 import type { Grid } from './grid';
 
@@ -158,10 +158,8 @@ export class TouchInput implements InputHandler {
       return;
     }
 
-    // Move cursor to tapped position (already validated by renderer)
-    this.grid.cursor.x = gridCoord.gridX;
-    this.grid.cursor.y = gridCoord.gridY;
-    this.grid.update();
+    // Move cursor to tapped position, recording as a single moveCursor action
+    this.grid.moveCursor(gridCoord.gridX, gridCoord.gridY);
   }
 }
 

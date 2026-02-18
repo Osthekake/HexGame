@@ -5,8 +5,7 @@ import { validateScore } from '../validation.js';
 import type { ActionType } from '@hexgame/shared';
 
 const VALID_ACTION_TYPES: ActionType[] = [
-  'moveLeft', 'moveRight', 'moveUp', 'moveDown',
-  'rotateClockwise', 'rotateCounterClockwise',
+  'rotateClockwise', 'rotateCounterClockwise', 'moveCursor',
 ];
 
 export function scoreRoutes(queries: Queries): Router {
@@ -119,6 +118,10 @@ export function scoreRoutes(queries: Queries): Router {
       }
       if (typeof action.timestamp !== 'number') {
         res.status(400).json({ error: `Invalid timestamp at index ${i}` });
+        return;
+      }
+      if (action.type === 'moveCursor' && (typeof action.x !== 'number' || typeof action.y !== 'number')) {
+        res.status(400).json({ error: `moveCursor at index ${i} missing x/y coordinates` });
         return;
       }
     }

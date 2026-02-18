@@ -20,9 +20,11 @@
   </div>
 
 
-  <button class="button highscore-button" id="highscore-button">&#127942;</button>
+  <div class="highscore-container corner-container">
+    <button class="button highscore-button" id="highscore-button">&#127942;</button>
+  </div>
 
-  <div class="settings-container">
+  <div class="settings-container corner-container">
     <button class="button settings-button" id="settings-button">⚙</button>
     <div class="settings-menu" id="settings-menu">
       <h3 class="settings-title">Renderer</h3>
@@ -44,7 +46,9 @@
 
   <div class="highscore-overlay" id="highscore-overlay" style="display: none;">
     <div class="highscore-panel">
-      <button class="highscore-close-btn" id="close-highscore-btn">&times;</button>
+      <div class="highscore-header">
+        <button class="highscore-close-btn" id="close-highscore-btn">&times;</button>
+      </div>
 
       <!-- Upload Prompt View -->
       <div id="upload-prompt" style="display: none;">

@@ -49,6 +49,8 @@ export class Grid implements Controllable {
     };
 
     this.engine = new GameEngine(engineConfig, this.seed);
+
+    console.log("game initialized with seed", this.seed)
   }
 
   // Delegate state access to engine
@@ -128,38 +130,53 @@ export class Grid implements Controllable {
     this.renderer.render();
   }
 
-  private recordAction(type: GameAction['type']): void {
+  private recordAction(type: Exclude<GameAction['type'], 'moveCursor'>): void {
     const timestamp = this.gameStartTime > 0
       ? Date.now() - this.gameStartTime
       : 0;
     this.actions.push({ type, timestamp });
   }
 
+  private recordMoveCursor(): void {
+    const timestamp = this.gameStartTime > 0
+      ? Date.now() - this.gameStartTime
+      : 0;
+    const { x, y } = this.engine.cursor;
+    this.actions.push({ type: 'moveCursor', timestamp, x, y });
+  }
+
+  moveCursor(x: number, y: number): void {
+    if (this.lock()) return;
+    this.engine.moveCursor(x, y);
+    this.recordMoveCursor();
+    this.update();
+  }
+
   moveLeft(): void {
     if (this.lock()) return;
-    this.recordAction('moveLeft');
     this.engine.moveLeft();
+    this.recordMoveCursor();
     this.update();
   }
 
   moveUp(): void {
     if (this.lock()) return;
-    this.recordAction('moveUp');
     this.engine.moveUp();
+    this.recordMoveCursor();
     this.update();
   }
 
   moveRight(): void {
     if (this.lock()) return;
-    this.recordAction('moveRight');
     this.engine.moveRight();
+    this.recordMoveCursor();
     this.update();
   }
 
   moveDown(): void {
     if (this.lock()) return;
-    this.recordAction('moveDown');
     this.engine.moveDown();
+    this.recordMoveCursor();
     this.update();
   }
 

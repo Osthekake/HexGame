@@ -9,17 +9,13 @@ export interface Coordinate {
 }
 
 export type ActionType =
-  | 'moveLeft'
-  | 'moveRight'
-  | 'moveUp'
-  | 'moveDown'
   | 'rotateClockwise'
-  | 'rotateCounterClockwise';
+  | 'rotateCounterClockwise'
+  | 'moveCursor';
 
-export interface GameAction {
-  type: ActionType;
-  timestamp: number; // milliseconds since game start (first rotation)
-}
+export type GameAction =
+  | { type: Exclude<ActionType, 'moveCursor'>; timestamp: number }
+  | { type: 'moveCursor'; timestamp: number; x: number; y: number };
 
 export interface EngineConfig {
   gridWidth: number;       // 7

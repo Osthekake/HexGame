@@ -8,16 +8,22 @@
     --body-background-color: rgb(216, 216, 216);
     --content-background-color: rgb(14, 14, 14);
 
-    --button-border-color: #294076;
-    --button-background-color: #6684cc;
-    --button-background-hover-color: #8ba3db;
-    --button-text-color: rgb(235, 235, 255);
-    --button-text-shadow-color: rgb(11, 11, 48);
+    --button-border-color: #c87a30;
+    --button-background-color: #1e2d4a;
+    --button-background-hover-color: #2a3f6a;
+    --button-text-color: #f0f0ef;
+    --button-text-shadow-color: #000000;
+
+    --panel-background-color: #161620;
+    --panel-border-color: #c87a30;
+    --input-background-color: #0f0f18;
+    --input-text-color: #f0f0ef;
 
     --text-font-family: Arial;
     --text-size-sm: 12px;
     --text-size-md: 16px;
     --text-size-lg: 24px;
+    --text-size-xl: 36px;
     --text-font-weight-normal: 400;
     --text-font-weight-bold: 600;
 }

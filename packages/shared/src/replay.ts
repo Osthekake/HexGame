@@ -49,18 +49,6 @@ export function replayGame(
 
     // Execute the action
     switch (action.type) {
-      case 'moveLeft':
-        engine.moveLeft();
-        break;
-      case 'moveRight':
-        engine.moveRight();
-        break;
-      case 'moveUp':
-        engine.moveUp();
-        break;
-      case 'moveDown':
-        engine.moveDown();
-        break;
       case 'rotateClockwise': {
         if (!gameStarted) gameStarted = true;
         const result = engine.rotateClockwise();
@@ -75,6 +63,9 @@ export function replayGame(
         timerRemaining += result.timerAdded;
         break;
       }
+      case 'moveCursor':
+        engine.moveCursor(action.x, action.y);
+        break;
     }
   }
 
