@@ -306,6 +306,12 @@ export class Grid implements Controllable {
     this.update();
   }
 
+  setRenderer(newRenderer: HexRenderer): void {
+    this.renderer = newRenderer;
+    this.renderer.reset();
+    this.update();
+  }
+
   getActions(): GameAction[] {
     return [...this.actions];
   }

@@ -178,80 +178,63 @@ function restartGame(): void {
   showStartUI();
 }
 
-// Initialize the game with a specific renderer
-function initializeGame(rendererType: RendererType): void {
-  // Clean up existing instances if they exist
+// Calculate canvas size based on renderer type
+function calculateCanvasSize(rendererType: RendererType): number {
+  const isMobile = window.innerWidth <= 768;
+  if (rendererType === 'canvas2d') {
+    console.log("width calculation", window.innerWidth, isMobile);
+    if (isMobile) {
+      return window.innerWidth;
+    } else {
+      const verticalReserved = 192; // 12em at 16px/em
+      const horizontalPadding = 64;  // 4em at 16px/em
+      return Math.min(window.innerHeight - verticalReserved, window.innerWidth - horizontalPadding);
+    }
+  } else {
+    if (isMobile) {
+      return window.innerWidth;
+    } else {
+      return Math.min(window.innerHeight - 64, window.innerWidth - 64);
+    }
+  }
+}
+
+// Create a new canvas, renderer, and resize handler for the given renderer type.
+// Updates the module-level canvas, renderer, and resizeHandler variables.
+function createRendererForType(rendererType: RendererType): void {
   if (inputHandler) {
     inputHandler.detach();
   }
-
   if (resizeHandler) {
     window.removeEventListener('resize', resizeHandler);
   }
 
-  // Update body class to reflect current renderer
   document.body.classList.remove('renderer-canvas2d', 'renderer-threejs');
   document.body.classList.add(`renderer-${rendererType}`);
-
-  // Update config styles after body class is set (so CSS variables are correct)
   updateConfigStyles();
 
-  // Create a fresh canvas element
   canvas = createCanvas();
-
-  // Helper function to calculate canvas size based on renderer type
-  const calculateCanvasSize = (): number => {
-    const isMobile = window.innerWidth <= 768;
-    if (rendererType === 'canvas2d') {
-      // Check if mobile viewport
-      console.log("width calculation", window.innerWidth, isMobile);
-      if (isMobile) {
-        // Mobile: Canvas always uses full viewport width
-        return window.innerWidth;
-      } else {
-        // Desktop: Original calculation
-        const verticalReserved = 192; // 12em at 16px/em
-        const horizontalPadding = 64;  // 4em at 16px/em
-        return Math.min(window.innerHeight - verticalReserved, window.innerWidth - horizontalPadding);
-      }
-    } else {
-      if (isMobile) {
-        // Mobile: Canvas always uses full viewport width
-        return window.innerWidth;
-      } else {
-        // ThreeJS mode uses full viewport with minimal padding
-        return Math.min(window.innerHeight - 64, window.innerWidth - 64);
-      }
-    }
-  };
-
-  // Set initial canvas size to be square and fill available space
-  const size = calculateCanvasSize();
+  const size = calculateCanvasSize(rendererType);
   canvas.width = size;
   canvas.height = size;
 
-  // Create renderer based on config
-  renderer = createRenderer(
-    rendererType,
-    canvas,
-    config,
-    timer
-  );
+  renderer = createRenderer(rendererType, canvas, config, timer);
 
-  // Create resize handler
   resizeHandler = () => {
-    const size = calculateCanvasSize();
+    const size = calculateCanvasSize(rendererType);
     canvas.width = size;
     canvas.height = size;
-
-    // Update Three.js camera if using ThreeJsRenderer
     if (renderer instanceof ThreeJsRenderer) {
       renderer.updateCameraAspect(canvas.width, canvas.height);
     }
-
     renderer.render();
   };
   window.addEventListener('resize', resizeHandler);
+}
+
+// Initialize the game with a specific renderer
+function initializeGame(rendererType: RendererType): void {
+  createRendererForType(rendererType);
 
   // Create Grid with session seed
   grid = new Grid(
@@ -263,21 +246,35 @@ function initializeGame(rendererType: RendererType): void {
   );
 
   setupGridBindings();
-
-  // Initialize the game
   grid.init();
-
-  // Show start UI initially (before first rotation)
   showStartUI();
 }
 
 // Function to switch renderer
-export function switchRenderer(newRenderer: RendererType): void {
-  trackSettingsRenderer(newRenderer);
-  saveRenderer(newRenderer);
-  config.renderer = newRenderer;
-  isGameOver = false;
-  initializeGame(newRenderer);
+export function switchRenderer(newRendererType: RendererType): void {
+  trackSettingsRenderer(newRendererType);
+  saveRenderer(newRendererType);
+  config.renderer = newRendererType;
+
+  createRendererForType(newRendererType);
+
+  if (grid.lock()) {
+    // Mid-animation: fall back to a clean restart to avoid a hybrid state
+    timer.reset();
+    isGameOver = false;
+    grid = new Grid(renderer, pointsElement, timer, config, currentSeed || undefined);
+    setupGridBindings();
+    grid.init();
+    showStartUI();
+  } else {
+    // Idle: swap renderer in-place, preserving all game state
+    grid.setRenderer(renderer);
+    inputHandler = createInputHandler(config.input);
+    inputHandler.attach(grid, renderer, grid);
+    if ('setRestartCallback' in inputHandler) {
+      (inputHandler as any).setRestartCallback(() => restartGame());
+    }
+  }
 }
 
 // Function to switch input

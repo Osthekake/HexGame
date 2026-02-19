@@ -156,7 +156,7 @@ body.renderer-canvas2d {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
     gap: 2em;
     padding-bottom: 2em;
