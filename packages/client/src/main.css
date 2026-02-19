@@ -379,7 +379,6 @@ body.renderer-canvas2d {
   background: var(--panel-background-color);
   border: 2px solid var(--panel-border-color);
   border-radius: 1em;
-  padding: 2em;
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
@@ -387,6 +386,10 @@ body.renderer-canvas2d {
   position: relative;
   color: var(--button-text-color);
   font-family: var(--text-font-family);
+}
+
+.highscore-body {
+  padding: 2em;
 }
 
 /* Panel header row — contains close button */

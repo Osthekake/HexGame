@@ -50,29 +50,31 @@
         <button class="highscore-close-btn" id="close-highscore-btn">&times;</button>
       </div>
 
-      <!-- Upload Prompt View -->
-      <div id="upload-prompt" style="display: none;">
-        <h2 class="highscore-title">New Score!</h2>
-        <p class="highscore-score-display">Score: <span id="upload-score-display"></span></p>
-        <div class="highscore-form-group">
-          <label for="nickname-input">Nickname</label>
-          <input type="text" id="nickname-input" maxlength="20" placeholder="Enter nickname" autocomplete="off" />
+      <div class="highscore-body">
+        <!-- Upload Prompt View -->
+        <div id="upload-prompt" style="display: none;">
+          <h2 class="highscore-title">New Score!</h2>
+          <p class="highscore-score-display">Score: <span id="upload-score-display"></span></p>
+          <div class="highscore-form-group">
+            <label for="nickname-input">Nickname</label>
+            <input type="text" id="nickname-input" maxlength="20" placeholder="Enter nickname" autocomplete="off" />
+          </div>
+          <div class="highscore-form-actions">
+            <button class="button" id="upload-score-btn">Upload Score</button>
+            <button class="button highscore-secondary-btn" id="skip-upload-btn">Skip</button>
+          </div>
+          <p id="upload-status" class="highscore-status"></p>
         </div>
-        <div class="highscore-form-actions">
-          <button class="button" id="upload-score-btn">Upload Score</button>
-          <button class="button highscore-secondary-btn" id="skip-upload-btn">Skip</button>
+  
+        <!-- Highscore Board View -->
+        <div id="highscore-board" style="display: none;">
+          <div class="highscore-tabs">
+            <button class="highscore-tab active" id="tab-alltime">All Time</button>
+            <button class="highscore-tab" id="tab-today">Today</button>
+            <button class="highscore-tab" id="tab-region">My Region</button>
+          </div>
+          <div id="highscore-list"></div>
         </div>
-        <p id="upload-status" class="highscore-status"></p>
-      </div>
-
-      <!-- Highscore Board View -->
-      <div id="highscore-board" style="display: none;">
-        <div class="highscore-tabs">
-          <button class="highscore-tab active" id="tab-alltime">All Time</button>
-          <button class="highscore-tab" id="tab-today">Today</button>
-          <button class="highscore-tab" id="tab-region">My Region</button>
-        </div>
-        <div id="highscore-list"></div>
       </div>
     </div>
   </div>
