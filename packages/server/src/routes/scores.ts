@@ -26,14 +26,16 @@ export function scoreRoutes(queries: Queries): Router {
       case 'today':
         whereClause = "WHERE date(created_at) = date('now')";
         break;
-      case 'region':
-        if (!country) {
-          res.status(400).json({ error: 'country parameter required for region variant' });
-          return;
-        }
+      case 'region': {
+        const regionCountry = country || (() => {
+          const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || '';
+          const ipStr = Array.isArray(ip) ? ip[0] : ip;
+          return geoip.lookup(ipStr)?.country || '';
+        })();
         whereClause = 'WHERE country = ?';
-        params.push(country);
+        params.push(regionCountry || 'XX');
         break;
+      }
       case 'alltime':
       default:
         break;
