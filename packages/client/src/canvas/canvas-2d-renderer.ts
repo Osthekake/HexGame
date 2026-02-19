@@ -66,14 +66,14 @@ export class Canvas2DRenderer implements HexRenderer {
     return gradient;
   }
 
-  private drawHexAtPixel(centerX: number, centerY: number, scale: number, fillStyle: string): void {
+  private drawHexAtPixel(centerX: number, centerY: number, scale: number, fillStyle: string, rotation: number = 0): void {
     const radius = this.getHexRadius() * scale;
 
     this.ctx.fillStyle = fillStyle;
     this.ctx.beginPath();
-    this.ctx.moveTo(centerX, centerY + radius);
+    this.ctx.moveTo(centerX + Math.sin(rotation) * radius, centerY + Math.cos(rotation) * radius);
     for (let i = 0; i < 6; i++) {
-      const radians = Math.PI * i / 3;
+      const radians = Math.PI * i / 3 + rotation;
       this.ctx.lineTo(
         centerX + Math.sin(radians) * radius,
         centerY + Math.cos(radians) * radius
@@ -207,7 +207,7 @@ export class Canvas2DRenderer implements HexRenderer {
             const newY = cursorPixel.y + Math.sin(newAngle) * distance;
 
             const color = this.getColorForHex(hex.colorIndex);
-            this.drawHexAtPixel(newX, newY, 1, color);
+            this.drawHexAtPixel(newX, newY, 1, color, -rotationAngle);
           }
         }
       }

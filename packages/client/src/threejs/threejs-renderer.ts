@@ -221,11 +221,11 @@ export class ThreeJsRenderer implements HexRenderer {
         const angleStep = (Math.PI * 2) / 6
         const totalRotation = (clockwise ? -1 : 1) * angleStep
 
-        // Create position tween for each rotating hex
+        // Create position and self-rotation tweens for each rotating hex
         const tweens = rotatingHexes
             .map(hex => this.meshes[hex.id])
             .filter(mesh => mesh !== undefined)
-            .map(mesh => {
+            .flatMap(mesh => {
                 const startPos = mesh.position.clone()
                 const dx = startPos.x - cursorVec.x
                 const dy = startPos.y - cursorVec.y
@@ -235,9 +235,15 @@ export class ThreeJsRenderer implements HexRenderer {
                 const endX = cursorVec.x + Math.cos(endAngle) * distance
                 const endY = cursorVec.y + Math.sin(endAngle) * distance
 
-                return new TWEEN.Tween(mesh.position)
+                const positionTween = new TWEEN.Tween(mesh.position)
                     .to({ x: endX, y: endY, z: -11 }, duration)
                     .easing(TWEEN.Easing.Quadratic.InOut)
+
+                const rotationTween = new TWEEN.Tween(mesh.rotation)
+                    .to({ z: mesh.rotation.z + totalRotation }, duration)
+                    .easing(TWEEN.Easing.Quadratic.InOut)
+
+                return [positionTween, rotationTween]
             })
 
         await tweenPromise(this, duration, tweens)
