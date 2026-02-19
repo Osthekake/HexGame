@@ -1,4 +1,4 @@
-import { getScores, submitScore, type ScoreEntry } from './api-client';
+import { getScores, submitScore, countryFlag, type ScoreEntry } from './api-client';
 import { getNickname, setNickname } from './nickname-store';
 import type { GameAction } from '@hexgame/shared';
 
@@ -149,6 +149,9 @@ export class HighscoreUI {
     try {
       const country = this.currentVariant === 'region' ? this.playerCountry : undefined;
       const data = await getScores(this.currentVariant, this.lastScore || undefined, country);
+      if (this.currentVariant === 'region' && data.country) {
+        this.tabs[2].textContent = `My Region ${countryFlag(data.country)}`;
+      }
       this.highscoreList.innerHTML = this.renderScoreTable(data.top10, data.around);
     } catch {
       this.highscoreList.innerHTML = '<p class="highscore-error">Failed to load scores</p>';

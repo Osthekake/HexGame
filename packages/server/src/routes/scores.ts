@@ -21,6 +21,7 @@ export function scoreRoutes(queries: Queries): Router {
 
     let whereClause = '';
     const params: unknown[] = [];
+    let resolvedCountry: string | undefined;
 
     switch (variant) {
       case 'today':
@@ -32,8 +33,10 @@ export function scoreRoutes(queries: Queries): Router {
           const ipStr = Array.isArray(ip) ? ip[0] : ip;
           return geoip.lookup(ipStr)?.country || '';
         })();
+        resolvedCountry = regionCountry || 'XX';
+
         whereClause = 'WHERE country = ?';
-        params.push(regionCountry || 'XX');
+        params.push(resolvedCountry);
         break;
       }
       case 'alltime':
@@ -63,6 +66,7 @@ export function scoreRoutes(queries: Queries): Router {
     res.json({
       top10: top10.map(formatRow),
       around: around.map(formatRow),
+      ...(resolvedCountry !== undefined && { country: resolvedCountry }),
     });
   });
 

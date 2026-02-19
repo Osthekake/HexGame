@@ -19,6 +19,16 @@ export interface ScoreEntry {
 export interface ScoresResponse {
   top10: ScoreEntry[];
   around: ScoreEntry[];
+  country?: string;
+}
+
+export function countryFlag(code: string): string {
+  if (!code || code.length !== 2) return '';
+  if (code === 'XX') return '🏴‍☠️';
+  return String.fromCodePoint(
+    0x1F1E6 + (code.charCodeAt(0) - 65),
+    0x1F1E6 + (code.charCodeAt(1) - 65),
+  );
 }
 
 export interface SubmitScoreResponse {
