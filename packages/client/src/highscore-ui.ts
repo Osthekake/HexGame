@@ -183,7 +183,7 @@ export class HighscoreUI {
   private renderRow(entry: ScoreEntry): string {
     const isHighlighted = entry.score === this.lastScore && this.lastScore > 0;
     const cls = isHighlighted ? ' class="highlighted"' : '';
-    return `<tr${cls}><td>${entry.rank}</td><td>${this.escapeHtml(entry.nickname)}</td><td>${this.escapeHtml(entry.country)}</td><td>${entry.score}</td></tr>`;
+    return `<tr${cls}><td>${entry.rank}</td><td>${this.escapeHtml(entry.nickname)}</td><td>${countryFlag(entry.country) || this.escapeHtml(entry.country)}</td><td>${entry.score}</td></tr>`;
   }
 
   private escapeHtml(text: string): string {
